@@ -40,7 +40,10 @@ The schema lives in `src/db/schema.ts`. Migrations are generated into `drizzle/`
 ```bash
 pnpm db:generate   # generate a migration after changing the schema
 pnpm db:migrate    # apply pending migrations to DATABASE_URL
+pnpm db:seed       # insert sample accounts, income sources, categories and items
 ```
+
+`db:seed` is idempotent: rows are matched by name and only the missing ones are inserted, so it is safe to run again. It uses the existing household (created on the first login) or creates one if there is none. The data lives in `src/db/seed-data.ts` and is only a sample; edit it to match your own categories and amounts before the first run, or change it in the app later.
 
 `drizzle-kit` reads `DATABASE_URL` from `.env` automatically. The app itself talks to the database through the client exported from `src/db/index.ts`.
 
