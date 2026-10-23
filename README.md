@@ -16,6 +16,23 @@ cp .env.example .env
 
 Set `DATABASE_URL` in `.env` to a Postgres database. On Neon, use the pooled connection string (the host contains `-pooler`).
 
+## Authentication
+
+Login uses [Better Auth](https://www.better-auth.com) with Google. Sign-up is closed: only the emails in `ALLOWED_EMAILS` can sign in, and everyone else is rejected. An empty list allows nobody.
+
+1. In the Google Cloud console, create an OAuth client (type: Web application) and add this authorized redirect URI: `http://localhost:3000/api/auth/callback/google` (plus the production URL when you deploy).
+2. Set these variables in `.env`:
+
+| Variable | Purpose |
+| --- | --- |
+| `BETTER_AUTH_SECRET` | Signing secret. Generate one with `openssl rand -base64 32`. |
+| `BETTER_AUTH_URL` | App base URL, e.g. `http://localhost:3000`. |
+| `GOOGLE_CLIENT_ID` | From the Google OAuth client. |
+| `GOOGLE_CLIENT_SECRET` | From the Google OAuth client. |
+| `ALLOWED_EMAILS` | Comma-separated emails allowed to sign in. |
+
+The first allowed user to sign in creates the household; the second joins it. Better Auth uses the `users` table, and its extra tables are prefixed `auth_`.
+
 ## Database
 
 The schema lives in `src/db/schema.ts`. Migrations are generated into `drizzle/` and committed.
@@ -32,5 +49,6 @@ pnpm db:migrate    # apply pending migrations to DATABASE_URL
 ```bash
 pnpm dev     # start the dev server on http://localhost:3000
 pnpm lint
+pnpm test    # unit tests (Node's built-in test runner)
 pnpm build
 ```
