@@ -31,6 +31,10 @@ Branch: `feat/better-auth`
 - Task 4: `4fef070` feat: add auth route, login page and proxy route protection. Dev server: `/` 307 -> `/login`, `/login` 200, `/api/auth/get-session` null/200. Temporary route (deleted) proved against Neon: users + auth_sessions queries work through the adapter mapping and the hook rejects a non-allowlisted email with FORBIDDEN. First build failed (`headers()` outside Suspense with Cache Components); fixed with a static shell + Suspense; build PASS (with a throwaway BETTER_AUTH_SECRET passed inline).
 - Task 5: `de4fc3e` docs: document authentication setup. `.env.example` is blocked for the agent: the user adds the new variables (BETTER_AUTH_SECRET, BETTER_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, ALLOWED_EMAILS).
 
+## Post-close fix
+
+- First real Google login failed with `MISSING_FIELD: householdId is required`: Better Auth validates `required` additional fields against the provider profile before `databaseHooks.user.create.before` runs (`better-auth/dist/db/schema.mjs`). Fix: `householdId` is `required: false` in the Better Auth config; the DB column stays NOT NULL and the hook always sets it. My earlier temporary check missed this because `internalAdapter.createUser` skips that validation.
+
 ## Not verified
 
 - Real Google login end to end and the allowed-email path (create user + household): needs the user's Google OAuth credentials and `ALLOWED_EMAILS` in `.env`.

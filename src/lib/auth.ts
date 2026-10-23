@@ -39,7 +39,10 @@ export const auth = betterAuth({
   user: {
     modelName: "users",
     additionalFields: {
-      householdId: { type: "string", required: true, input: false },
+      // Not required here: Better Auth validates required fields against the
+      // provider profile before the create hook runs, and the profile has no
+      // household. The column is NOT NULL and the hook below always sets it.
+      householdId: { type: "string", required: false, input: false },
     },
   },
   session: { modelName: "auth_sessions" },
