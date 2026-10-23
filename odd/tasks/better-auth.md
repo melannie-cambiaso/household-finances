@@ -15,12 +15,16 @@ Branch: `feat/better-auth`
 
 ## Tasks
 
-- [ ] 1. Install better-auth and verify its API against the installed package types
-- [ ] 2. Extend the schema (`users` columns, session/account/verification), generate the migration and apply it to Neon
-- [ ] 3. Auth config (`src/lib/auth.ts`): Drizzle adapter, `users` mapping, uuid ids, Google provider, allowlist + household hook
+- [x] 1. Install better-auth and verify its API against the installed package types
+- [x] 2. Extend the schema (`users` columns, session/account/verification), generate the migration and apply it to Neon
+- [x] 3. Auth config (`src/lib/auth.ts`): Drizzle adapter, `users` mapping, uuid ids, Google provider, allowlist + household hook
 - [ ] 4. Route handler, auth client, `proxy.ts` route protection and a minimal login page
 - [ ] 5. `.env.example`, README setup (Google OAuth, secret, allowlist) and close
 
 ## Commits
 
 (one work-unit commit per task, recorded here)
+
+- Task 1: `df950b6` chore: add better-auth and ODD tracking. better-auth 1.7.12; API verified against package types (advanced.database.generateId "uuid", databaseHooks.user.create.before, drizzleAdapter schema map, nextCookies/toNextJsHandler).
+- Task 2: `c1c37f2` feat: extend schema for Better Auth tables. Better Auth tables prefixed `auth_` because `accounts` is the household's money accounts. Migration 0001 applied to Neon.
+- Task 3: `d7de0d6` feat: add Better Auth config with Google and email allowlist. RED observed (module not found), GREEN 7/7 with `node --test`; tsc + lint PASS. Adapter/DB mapping is verified in task 4 (needs the dev server).
