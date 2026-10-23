@@ -11,6 +11,7 @@ import {
 import {
   expectedReimbursement,
   formatClp,
+  formatMonthLabel,
   parseMonthParam,
   shiftMonth,
   todayIn,
@@ -23,23 +24,18 @@ const TIME_ZONE = "America/Santiago";
 
 type SearchParams = Promise<{ month?: string | string[] }>;
 
+const pillClass =
+  "rounded-full border border-line px-4 py-1 text-sm text-muted transition-colors hover:bg-surface hover:text-text";
+
 export default function ExpensesPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Expenses</h1>
-        <Link href="/" className="underline">
-          Home
-        </Link>
-      </div>
-      <Suspense fallback={<p>Loading...</p>}>
-        <ExpensesContent searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <Suspense fallback={<p className="p-8">Loading...</p>}>
+      <ExpensesContent searchParams={searchParams} />
+    </Suspense>
   );
 }
 
@@ -53,7 +49,7 @@ async function ExpensesContent({
 
   const householdId = session.user.householdId;
   if (!householdId) {
-    return <p role="alert">Your account is not linked to a household.</p>;
+    return <p className="p-8">Your account is not linked to a household.</p>;
   }
 
   // The current date is read after the session, which makes this render dynamic.
@@ -74,80 +70,97 @@ async function ExpensesContent({
 
   return (
     <>
-      {items.length === 0 || accounts.length === 0 ? (
-        <p>
-          There are no items or accounts yet. Run <code>pnpm db:seed</code> to
-          add sample ones.
-        </p>
-      ) : (
-        <ExpenseForm items={items} accounts={accounts} today={today} />
-      )}
-
-      <section className="grid gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">{month.slice(0, 7)}</h2>
-          <nav className="flex gap-4">
-            <Link href={`/expenses?month=${shiftMonth(month, -1).slice(0, 7)}`}>
-              Previous
-            </Link>
-            <Link href={`/expenses?month=${shiftMonth(month, 1).slice(0, 7)}`}>
-              Next
-            </Link>
-          </nav>
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line px-8 py-6">
+        <div>
+          <h1 className="text-3xl">Expenses</h1>
+          <p className="text-sm text-muted">What the household spent</p>
         </div>
+        <nav aria-label="Month" className="flex items-center gap-3">
+          <Link
+            href={`/expenses?month=${shiftMonth(month, -1).slice(0, 7)}`}
+            className={pillClass}
+          >
+            ← Previous
+          </Link>
+          <span className="min-w-36 text-center text-xl">
+            {formatMonthLabel(month)}
+          </span>
+          <Link
+            href={`/expenses?month=${shiftMonth(month, 1).slice(0, 7)}`}
+            className={pillClass}
+          >
+            Next →
+          </Link>
+        </nav>
+      </header>
 
-        {expenses.length === 0 ? (
-          <p>No expenses for this month.</p>
-        ) : (
-          <table className="w-full text-left">
-            <thead>
-              <tr>
-                <th className="py-2">Date</th>
-                <th>Item</th>
-                <th>Account</th>
-                <th className="text-right">Amount</th>
-                <th className="text-right">Reimbursement</th>
-              </tr>
-            </thead>
-            <tbody>
+      <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-8">
+        <section className="rounded-card border border-line bg-surface p-6">
+          <h2 className="mb-4 text-xl">Add an expense</h2>
+          {items.length === 0 || accounts.length === 0 ? (
+            <p className="text-muted">
+              There are no items or accounts yet. Run{" "}
+              <code className="rounded bg-page px-1">pnpm db:seed</code> to add
+              sample ones.
+            </p>
+          ) : (
+            <ExpenseForm items={items} accounts={accounts} today={today} />
+          )}
+        </section>
+
+        <section className="rounded-card border border-line bg-surface p-6">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="text-xl">{formatMonthLabel(month)}</h2>
+            <p className="text-muted">
+              Total{" "}
+              <span className="font-numeric text-lg font-bold text-expense">
+                {formatClp(total)}
+              </span>
+            </p>
+          </div>
+
+          {expenses.length === 0 ? (
+            <p className="text-muted">No expenses for this month.</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
               {expenses.map((expense) => (
-                <tr key={expense.id} className="border-t">
-                  <td className="py-2">{expense.spentOn}</td>
-                  <td>
-                    {expense.categoryName} / {expense.itemName}
-                    {expense.description && (
-                      <span className="block text-sm opacity-70">
-                        {expense.description}
-                      </span>
+                <li
+                  key={expense.id}
+                  className="flex items-start justify-between gap-4 rounded-2xl border border-line px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p>
+                      {expense.categoryName} / {expense.itemName}
+                    </p>
+                    <p className="text-sm text-muted">
+                      {expense.spentOn} · {expense.accountName}
+                      {expense.description && ` · ${expense.description}`}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="font-numeric font-bold text-expense">
+                      {formatClp(expense.amount)}
+                    </p>
+                    {expense.reimbursementPct !== null && (
+                      <p className="text-sm text-income">
+                        {expense.reimbursementPct}% ={" "}
+                        <span className="font-numeric font-bold">
+                          {formatClp(
+                            expectedReimbursement(
+                              expense.amount,
+                              expense.reimbursementPct,
+                            ),
+                          )}
+                        </span>
+                      </p>
                     )}
-                  </td>
-                  <td>{expense.accountName}</td>
-                  <td className="text-right">{formatClp(expense.amount)}</td>
-                  <td className="text-right">
-                    {expense.reimbursementPct === null
-                      ? "-"
-                      : `${expense.reimbursementPct}% = ${formatClp(
-                          expectedReimbursement(
-                            expense.amount,
-                            expense.reimbursementPct,
-                          ),
-                        )}`}
-                  </td>
-                </tr>
+                  </div>
+                </li>
               ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t font-semibold">
-                <td colSpan={3} className="py-2">
-                  Total
-                </td>
-                <td className="text-right">{formatClp(total)}</td>
-                <td />
-              </tr>
-            </tfoot>
-          </table>
-        )}
-      </section>
+            </ul>
+          )}
+        </section>
+      </main>
     </>
   );
 }

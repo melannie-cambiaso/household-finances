@@ -54,6 +54,15 @@ export function parseMonthParam(
   return firstOfMonth(today);
 }
 
+/** "2026-10-01" -> "October 2026" */
+export function formatMonthLabel(month: string): string {
+  return new Date(`${month}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 /** Moves a first-of-month date by a number of months. */
 export function shiftMonth(month: string, delta: number): string {
   const year = Number(month.slice(0, 4));

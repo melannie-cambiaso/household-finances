@@ -5,6 +5,7 @@ import {
   expectedReimbursement,
   firstOfMonth,
   formatClp,
+  formatMonthLabel,
   parseAmount,
   parseMonthParam,
   shiftMonth,
@@ -59,6 +60,13 @@ describe("parseMonthParam", () => {
     assert.equal(parseMonthParam("2026-3", today), "2026-10-01");
     assert.equal(parseMonthParam("0000-01", today), "2026-10-01");
     assert.equal(parseMonthParam("1999-12", today), "2026-10-01");
+  });
+});
+
+describe("formatMonthLabel", () => {
+  it("spells out the month and year", () => {
+    assert.equal(formatMonthLabel("2026-10-01"), "October 2026");
+    assert.equal(formatMonthLabel("2027-01-01"), "January 2027");
   });
 });
 
