@@ -140,9 +140,8 @@ await db.transaction(async (tx) => {
       count(created, "items");
     }
   }
-});
-
-await sql.end();
+  // Close the connection whether the transaction succeeds or fails.
+}).finally(() => sql.end());
 
 console.log("created:", created);
 console.log("already present:", existing);

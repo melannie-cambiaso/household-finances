@@ -10,7 +10,7 @@ Branch: `feat/seed-data`
 
 ## Design decisions
 
-- Seed content lives in a pure module (`src/db/seed-data.ts`) so its invariants can be unit tested; the script (`src/db/seed.ts`) only inserts.
+- Seed content lives in a pure module (`src/db/seed-data.ts`) so its invariants can be unit tested; the script (`src/db/seed.mts`) only inserts.
 - The script runs with Node's native TypeScript support, so it uses relative imports with `.ts` extensions and its own postgres client (it does not import `src/db/index.ts`).
 - It uses the existing household (created on first login) and creates one only if none exists, same as the auth hook.
 - Idempotent: rows are matched by name within the household and only missing ones are inserted. Re-running changes nothing.
@@ -34,6 +34,12 @@ Branch: `feat/seed-data`
 
 - R3-household-pick-unordered (SUGGESTION): the household was picked with `limit(1)` and no order. Fixed in `src/db/seed.mts` and in the auth hook (`src/lib/auth.ts`) with `orderBy(households.id)`, so both always pick the same row.
 - R3-household-create-unverified (WARNING): verified the household-creation branch on a throwaway local Postgres with both migrations applied and no rows: run 1 created 1 household, 3 accounts, 4 income sources, 5 categories, 9 items; run 2 created nothing. The run pointed `DATABASE_URL` at the local database (`loadEnvFile` does not override variables already set), so Neon was not touched. tsc, lint and 15 tests PASS.
+
+## Second review (4 lenses, approved) follow-ups
+
+- R2-task-doc-wrong-script-name (WARNING): this document named the script `seed.ts`; it is `seed.mts`. Fixed.
+- R3-seed-end-not-in-finally (SUGGESTION): the connection is now closed with `.finally(() => sql.end())` on the transaction. Verified both paths: success on Neon (idempotent, exit 0) and failure against a closed port (exit 1, ECONNREFUSED, no hang).
+- Left for later: R2-seed-repeated-find-or-insert (the find-or-insert pattern repeats four times; extract a helper if the seed grows) and R3-seed-idempotency-not-automated (idempotency was checked by hand; an automated test needs a real database in CI).
 
 ## Not verified
 
