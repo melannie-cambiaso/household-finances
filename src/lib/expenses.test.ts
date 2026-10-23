@@ -57,6 +57,8 @@ describe("parseMonthParam", () => {
     assert.equal(parseMonthParam("2026-13", today), "2026-10-01");
     assert.equal(parseMonthParam("nope", today), "2026-10-01");
     assert.equal(parseMonthParam("2026-3", today), "2026-10-01");
+    assert.equal(parseMonthParam("0000-01", today), "2026-10-01");
+    assert.equal(parseMonthParam("1999-12", today), "2026-10-01");
   });
 });
 
@@ -162,5 +164,24 @@ describe("validateExpenseInput", () => {
   it("rejects impossible calendar dates", () => {
     const result = validateExpenseInput({ ...valid, spentOn: "2026-02-30" });
     assert.equal(result.ok, false);
+  });
+
+  it("rejects years outside 2000-2100, including year zero (Postgres has none)", () => {
+    for (const spentOn of ["0000-01-01", "1999-12-31", "2101-01-01"]) {
+      const result = validateExpenseInput({ ...valid, spentOn });
+      assert.equal(result.ok, false, spentOn);
+      if (!result.ok) assert.ok(result.errors.spentOn, spentOn);
+    }
+    for (const spentOn of ["2000-01-01", "2100-12-31"]) {
+      assert.equal(validateExpenseInput({ ...valid, spentOn }).ok, true, spentOn);
+    }
+  });
+
+  it("rejects a budget month outside 2000-2100", () => {
+    for (const budgetMonth of ["0000-01", "1999-12", "2101-01"]) {
+      const result = validateExpenseInput({ ...valid, budgetMonth });
+      assert.equal(result.ok, false, budgetMonth);
+      if (!result.ok) assert.ok(result.errors.budgetMonth, budgetMonth);
+    }
   });
 });

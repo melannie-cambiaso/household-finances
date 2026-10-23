@@ -3,6 +3,10 @@
 
 const POSTGRES_INTEGER_MAX = 2_147_483_647;
 const DESCRIPTION_MAX_LENGTH = 200;
+// A plausible window for a household expense. It also excludes year 0, which
+// JavaScript accepts but Postgres does not (there is no year zero).
+const MIN_YEAR = 2000;
+const MAX_YEAR = 2100;
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -21,8 +25,17 @@ export function parseAmount(raw: string): number | null {
   return value;
 }
 
+function inSupportedYears(value: string): boolean {
+  const year = Number(value.slice(0, 4));
+  return year >= MIN_YEAR && year <= MAX_YEAR;
+}
+
+function isValidMonth(value: string): boolean {
+  return MONTH_PATTERN.test(value) && inSupportedYears(value);
+}
+
 function isValidDate(value: string): boolean {
-  if (!DATE_PATTERN.test(value)) return false;
+  if (!DATE_PATTERN.test(value) || !inSupportedYears(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
@@ -37,7 +50,7 @@ export function parseMonthParam(
   param: string | undefined,
   today: string,
 ): string {
-  if (param && MONTH_PATTERN.test(param)) return `${param}-01`;
+  if (param && isValidMonth(param)) return `${param}-01`;
   return firstOfMonth(today);
 }
 
@@ -115,7 +128,7 @@ export function validateExpenseInput(
   if (budgetMonthRaw === "") {
     // Defaults to the month the expense was paid in.
     if (spentOnValid) budgetMonth = firstOfMonth(spentOn);
-  } else if (MONTH_PATTERN.test(budgetMonthRaw)) {
+  } else if (isValidMonth(budgetMonthRaw)) {
     budgetMonth = `${budgetMonthRaw}-01`;
   } else {
     errors.budgetMonth = "Enter a valid month";
