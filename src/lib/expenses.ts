@@ -1,0 +1,130 @@
+// Pure helpers for expenses. No database or framework imports, so they can be
+// unit tested with Node's built-in runner.
+
+const POSTGRES_INTEGER_MAX = 2_147_483_647;
+const DESCRIPTION_MAX_LENGTH = 200;
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+// Digits only, or groups of three separated by dots (Chilean thousands format).
+const AMOUNT_PATTERN = /^(\d+|\d{1,3}(\.\d{3})+)$/;
+
+/** Parses a CLP amount. Returns null for anything that is not a positive integer. */
+export function parseAmount(raw: string): number | null {
+  const text = raw.trim();
+  if (!AMOUNT_PATTERN.test(text)) return null;
+  const value = Number(text.replaceAll(".", ""));
+  if (!Number.isSafeInteger(value) || value <= 0) return null;
+  if (value > POSTGRES_INTEGER_MAX) return null;
+  return value;
+}
+
+function isValidDate(value: string): boolean {
+  if (!DATE_PATTERN.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+/** "2026-10-23" -> "2026-10-01" */
+export function firstOfMonth(date: string): string {
+  return `${date.slice(0, 7)}-01`;
+}
+
+/** Reads a `?month=YYYY-MM` param; falls back to the month of `today`. */
+export function parseMonthParam(
+  param: string | undefined,
+  today: string,
+): string {
+  if (param && MONTH_PATTERN.test(param)) return `${param}-01`;
+  return firstOfMonth(today);
+}
+
+/** amount * pct / 100, rounded to an integer. Zero when not reimbursable. */
+export function expectedReimbursement(
+  amount: number,
+  pct: number | null,
+): number {
+  if (pct === null) return 0;
+  return Math.round((amount * pct) / 100);
+}
+
+const clpFormatter = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+  maximumFractionDigits: 0,
+});
+
+export function formatClp(amount: number): string {
+  return clpFormatter.format(amount);
+}
+
+export type ExpenseInput = {
+  itemId: string;
+  accountId: string;
+  amount: number;
+  spentOn: string;
+  budgetMonth: string;
+  description: string | null;
+};
+
+export type ExpenseField = keyof ExpenseInput;
+
+export type ExpenseValidation =
+  | { ok: true; value: ExpenseInput }
+  | { ok: false; errors: Partial<Record<ExpenseField, string>> };
+
+/** Validates raw form strings and returns a normalized expense input. */
+export function validateExpenseInput(
+  raw: Record<ExpenseField, string>,
+): ExpenseValidation {
+  const errors: Partial<Record<ExpenseField, string>> = {};
+
+  const itemId = raw.itemId.trim();
+  if (!UUID_PATTERN.test(itemId)) errors.itemId = "Choose an item";
+
+  const accountId = raw.accountId.trim();
+  if (!UUID_PATTERN.test(accountId)) errors.accountId = "Choose an account";
+
+  const amount = parseAmount(raw.amount);
+  if (amount === null) {
+    errors.amount = "Enter a whole amount greater than zero";
+  }
+
+  const spentOn = raw.spentOn.trim();
+  const spentOnValid = isValidDate(spentOn);
+  if (!spentOnValid) errors.spentOn = "Enter a valid date";
+
+  const budgetMonthRaw = raw.budgetMonth.trim();
+  let budgetMonth = "";
+  if (budgetMonthRaw === "") {
+    // Defaults to the month the expense was paid in.
+    if (spentOnValid) budgetMonth = firstOfMonth(spentOn);
+  } else if (MONTH_PATTERN.test(budgetMonthRaw)) {
+    budgetMonth = `${budgetMonthRaw}-01`;
+  } else {
+    errors.budgetMonth = "Enter a valid month";
+  }
+
+  const descriptionRaw = raw.description.trim();
+  if (descriptionRaw.length > DESCRIPTION_MAX_LENGTH) {
+    errors.description = `Use at most ${DESCRIPTION_MAX_LENGTH} characters`;
+  }
+
+  if (Object.keys(errors).length > 0 || amount === null) {
+    return { ok: false, errors };
+  }
+
+  return {
+    ok: true,
+    value: {
+      itemId,
+      accountId,
+      amount,
+      spentOn,
+      budgetMonth,
+      description: descriptionRaw === "" ? null : descriptionRaw,
+    },
+  };
+}
