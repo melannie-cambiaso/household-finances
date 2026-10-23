@@ -52,6 +52,11 @@ Result: 16/16. This is also the first real exercise of the `createExpenseAction`
 - Selects lost the user's choice after a validation error (React does not apply a changed `defaultValue` to a mounted `<select>`). Present since `feat/expenses`. Fixed with a `key` that follows the value (RED: 2 failing checks, GREEN: 16/16).
 - Two failures were in the check script itself (a race with React's form reset, and a `const` redeclared across evaluations), not in the app.
 
+## Review follow-ups (approved review, advisory findings)
+
+- R3-backdrop-drag-close (SUGGESTION): dragging from inside the modal and releasing over the backdrop closed it, losing what was typed. Fixed: the modal closes only when the press also started on the backdrop (`pressStartedOnBackdrop` ref in `add-expense-dialog.tsx`). Verified in headless Chrome on a throwaway database: GREEN 17/17 with the fix; with the old code the drag check fails (the modal closes) and the checks that follow fail in cascade, so the check does detect the bug. tsc, lint, 36 tests and build PASS. This commit was not reviewed again.
+- Left for later: R3-select-key-unproved (the `key` that keeps the select choices after an error is only covered by the browser check script, which is not in the repository; a component test needs a DOM test runner).
+
 ## Not verified
 
 - The user's own eyes: colors, font and spacing are an approximation of a screenshot, to be tuned after the user sees them.
