@@ -20,11 +20,41 @@ Branch: `feat/ui-styles`
 
 ## Tasks
 
-- [ ] 1. Design tokens and font (globals.css, root layout), dark only
-- [ ] 2. App shell with sidebar: `(app)` route group, move home and expenses into it
-- [ ] 3. Restyle home, expenses (cards, pill buttons, month navigation, amount colors) and login
-- [ ] 4. Check screenshots of every page, tune, README note and close
+- [x] 1. Design tokens and font (globals.css, root layout), dark only
+- [x] 2. App shell with sidebar: `(app)` route group, move home and expenses into it
+- [x] 3. Restyle home, expenses (cards, pill buttons, month navigation, amount colors) and login; then, at the user's request, move "Add expense" into a modal
+- [x] 4. Check screenshots of every page, tune, README note and close
 
 ## Commits
 
 (one work-unit commit per task, recorded here)
+
+- Task 1: `cb0943f` feat: add warm dark design tokens and rounded fonts. Checked with a screenshot of `/login` on a production build.
+- Task 2: `a9d54dd` feat: add app shell with sidebar. Pages moved into the `(app)` route group with `git mv` (rename detected); routes unchanged in the build. A first attempt raced with parallel writes and left two pages for `/`; fixed before the commit.
+- Task 3: `4268929` feat: restyle expenses, form and login with the new design. `formatMonthLabel` added test-first (RED: export missing, GREEN 21/21).
+- Task 3b (user request): `c360107` feat: open the expense form in a modal and keep select choices after errors. Native `<dialog>`; the form is remounted on every open.
+- Task 4: `4deca22` docs: document the styling tokens and the app shell.
+
+## Verification
+
+Done on a throwaway local Postgres (migrations + `pnpm db:seed`) with a production build, never on the user's Neon. A temporary route minted a signed session cookie and created sample expenses; it was deleted before committing. A script drove headless Chrome through the DevTools protocol:
+
+- sign-in lands on `/expenses`; the inline form is gone; the modal opens from the button
+- `Esc` closes it; a click on the backdrop closes it; a click inside keeps it open
+- an invalid amount shows an error and keeps the modal open; typed text, the chosen item and the chosen account are kept
+- a valid submit closes the modal, the row appears, the row count grows by one, and the frozen reimbursement percentage (30%) is shown
+- reopening gives a fresh form
+
+Result: 16/16. This is also the first real exercise of the `createExpenseAction` Server Action with a session, which `feat/expenses` had left unverified.
+
+## Bugs found by the browser check
+
+- Selects lost the user's choice after a validation error (React does not apply a changed `defaultValue` to a mounted `<select>`). Present since `feat/expenses`. Fixed with a `key` that follows the value (RED: 2 failing checks, GREEN: 16/16).
+- Two failures were in the check script itself (a race with React's form reset, and a `const` redeclared across evaluations), not in the app.
+
+## Not verified
+
+- The user's own eyes: colors, font and spacing are an approximation of a screenshot, to be tuned after the user sees them.
+- The user's dev server needs a restart to serve the new CSS tokens (it kept serving the old CSS).
+- Mobile layout beyond a stacked sidebar; light theme (removed on purpose); Safari/Firefox.
+- The sidebar and `/` page were seen only in screenshots of `/expenses`; `/` itself was captured but not reviewed in detail.
