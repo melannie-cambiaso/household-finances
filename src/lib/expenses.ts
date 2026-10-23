@@ -41,6 +41,20 @@ export function parseMonthParam(
   return firstOfMonth(today);
 }
 
+/** Moves a first-of-month date by a number of months. */
+export function shiftMonth(month: string, delta: number): string {
+  const year = Number(month.slice(0, 4));
+  const monthIndex = Number(month.slice(5, 7)) - 1 + delta;
+  const date = new Date(Date.UTC(year, monthIndex, 1));
+  return date.toISOString().slice(0, 10);
+}
+
+/** Today's calendar date (YYYY-MM-DD) in a time zone; the server runs in UTC. */
+export function todayIn(timeZone: string, now: Date = new Date()): string {
+  // The en-CA locale formats dates as YYYY-MM-DD.
+  return now.toLocaleDateString("en-CA", { timeZone });
+}
+
 /** amount * pct / 100, rounded to an integer. Zero when not reimbursable. */
 export function expectedReimbursement(
   amount: number,

@@ -7,6 +7,8 @@ import {
   formatClp,
   parseAmount,
   parseMonthParam,
+  shiftMonth,
+  todayIn,
   validateExpenseInput,
 } from "./expenses.ts";
 
@@ -55,6 +57,27 @@ describe("parseMonthParam", () => {
     assert.equal(parseMonthParam("2026-13", today), "2026-10-01");
     assert.equal(parseMonthParam("nope", today), "2026-10-01");
     assert.equal(parseMonthParam("2026-3", today), "2026-10-01");
+  });
+});
+
+describe("shiftMonth", () => {
+  it("moves forward and backward by months", () => {
+    assert.equal(shiftMonth("2026-10-01", 1), "2026-11-01");
+    assert.equal(shiftMonth("2026-10-01", -1), "2026-09-01");
+  });
+
+  it("crosses year boundaries", () => {
+    assert.equal(shiftMonth("2026-12-01", 1), "2027-01-01");
+    assert.equal(shiftMonth("2026-01-01", -1), "2025-12-01");
+  });
+});
+
+describe("todayIn", () => {
+  it("uses the calendar day of the given time zone, not UTC", () => {
+    // 01:30 UTC on the 24th is still the evening of the 23rd in Chile (UTC-3).
+    const now = new Date("2026-10-24T01:30:00Z");
+    assert.equal(todayIn("America/Santiago", now), "2026-10-23");
+    assert.equal(todayIn("UTC", now), "2026-10-24");
   });
 });
 
