@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens, approximated by eye from the previous project's screenshot.
+ * Components use these semantic names (bg-surface, text-muted, text-income...)
+ * instead of raw colors, so the whole look can be tuned from here.
+ */
+@theme {
+  --color-page: #2b252d;
+  --color-sidebar: #272129;
+  --color-surface: #2f2932;
+  --color-line: #483f4d;
+  --color-text: #ebe6ee;
+  --color-muted: #9b92a0;
+
+  --color-accent: #f69ac1;
+  --color-accent-soft: #4a2b3d;
+  --color-focus: #8cb8ff;
+
+  --color-income: #86e6b8;
+  --color-expense: #ff6b8e;
+  --color-savings: #ffb454;
+  --color-transfer: #8cc8ff;
+
+  --radius-card: 1.75rem;
+
+  --font-sans: var(--font-itim), ui-rounded, system-ui, sans-serif;
+  --font-numeric: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Dark only: also darkens native controls such as date and month pickers. */
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* Visible keyboard focus, in the reference's light blue. */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
