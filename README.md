@@ -14,7 +14,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Set `DATABASE_URL` in `.env` to a Postgres database.
+Set `DATABASE_URL` in `.env` to a Postgres database. On Neon, use the pooled connection string (the host contains `-pooler`).
 
 ## Database
 
@@ -24,6 +24,8 @@ The schema lives in `src/db/schema.ts`. Migrations are generated into `drizzle/`
 pnpm db:generate   # generate a migration after changing the schema
 pnpm db:migrate    # apply pending migrations to DATABASE_URL
 ```
+
+`drizzle-kit` reads `DATABASE_URL` from `.env` automatically. The app itself talks to the database through the client exported from `src/db/index.ts`.
 
 ## Development
 
