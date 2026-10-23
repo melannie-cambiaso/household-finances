@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { createExpense } from "@/lib/expense-service";
+import {
+  createExpense,
+  type CreateExpenseResult,
+} from "@/lib/expense-service";
 import {
   validateExpenseInput,
   type ExpenseField,
@@ -66,11 +69,24 @@ export async function createExpenseAction(
     return { status: "error", errors: validation.errors, values };
   }
 
-  const result = await createExpense(
-    db,
-    { householdId, userId: session.user.id },
-    validation.value,
-  );
+  let result: CreateExpenseResult;
+  try {
+    result = await createExpense(
+      db,
+      { householdId, userId: session.user.id },
+      validation.value,
+    );
+  } catch (error) {
+    // A database failure should show a message in the form, not an error page,
+    // and keep what the user typed.
+    console.error("Failed to save an expense", error);
+    return {
+      status: "error",
+      message: "Could not save the expense. Try again.",
+      errors: {},
+      values,
+    };
+  }
   if (!result.ok) {
     // Same message for a missing item and a missing account: do not reveal
     // whether an id exists in another household.
