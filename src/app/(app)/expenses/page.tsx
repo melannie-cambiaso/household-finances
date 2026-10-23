@@ -18,7 +18,7 @@ import {
 } from "@/lib/expenses";
 import { getAllowedSession } from "@/lib/session";
 
-import { ExpenseForm } from "./expense-form";
+import { AddExpenseDialog } from "./add-expense-dialog";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -95,18 +95,17 @@ async function ExpensesContent({
       </header>
 
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-8">
-        <section className="rounded-card border border-line bg-surface p-6">
-          <h2 className="mb-4 text-xl">Add an expense</h2>
-          {items.length === 0 || accounts.length === 0 ? (
-            <p className="text-muted">
-              There are no items or accounts yet. Run{" "}
-              <code className="rounded bg-page px-1">pnpm db:seed</code> to add
-              sample ones.
-            </p>
-          ) : (
-            <ExpenseForm items={items} accounts={accounts} today={today} />
-          )}
-        </section>
+        {items.length === 0 || accounts.length === 0 ? (
+          <p className="rounded-card border border-line bg-surface p-6 text-muted">
+            There are no items or accounts yet. Run{" "}
+            <code className="rounded bg-page px-1">pnpm db:seed</code> to add
+            sample ones.
+          </p>
+        ) : (
+          <div className="flex justify-end">
+            <AddExpenseDialog items={items} accounts={accounts} today={today} />
+          </div>
+        )}
 
         <section className="rounded-card border border-line bg-surface p-6">
           <div className="mb-4 flex items-baseline justify-between">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 import { createExpenseAction, type ExpenseFormState } from "./actions";
 
@@ -32,15 +32,22 @@ export function ExpenseForm({
   items,
   accounts,
   today,
+  onSuccess,
 }: {
   items: ItemOption[];
   accounts: AccountOption[];
   today: string;
+  // Called after an expense is saved, e.g. to close the dialog around the form.
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(
     createExpenseAction,
     initialState,
   );
+
+  useEffect(() => {
+    if (state.status === "success") onSuccess?.();
+  }, [state, onSuccess]);
   const values = state.status === "error" ? state.values : null;
   const errors = state.status === "error" ? state.errors : {};
 
@@ -48,7 +55,10 @@ export function ExpenseForm({
     <form action={formAction} className="grid w-full gap-4">
       <label className="grid gap-1">
         <span className="text-muted">Item</span>
+        {/* React does not apply a changed defaultValue to a mounted <select>,
+            so the key remounts it with the choice the user had made. */}
         <select
+          key={`item-${values?.itemId ?? ""}`}
           name="itemId"
           required
           defaultValue={values?.itemId ?? ""}
@@ -76,6 +86,7 @@ export function ExpenseForm({
       <label className="grid gap-1">
         <span className="text-muted">Paid from</span>
         <select
+          key={`account-${values?.accountId ?? ""}`}
           name="accountId"
           required
           defaultValue={values?.accountId ?? ""}
