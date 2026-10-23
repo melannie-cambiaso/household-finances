@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 import { createExpenseAction, type ExpenseFormState } from "./actions";
 
@@ -15,7 +15,8 @@ type AccountOption = { id: string; name: string };
 
 const initialState: ExpenseFormState = { status: "idle" };
 
-const inputClass = "w-full rounded-md border bg-transparent px-3 py-2";
+const inputClass =
+  "w-full rounded-xl border border-line bg-page px-3 py-2 text-text";
 
 function groupByCategory(items: ItemOption[]) {
   const groups = new Map<string, ItemOption[]>();
@@ -31,23 +32,33 @@ export function ExpenseForm({
   items,
   accounts,
   today,
+  onSuccess,
 }: {
   items: ItemOption[];
   accounts: AccountOption[];
   today: string;
+  // Called after an expense is saved, e.g. to close the dialog around the form.
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(
     createExpenseAction,
     initialState,
   );
+
+  useEffect(() => {
+    if (state.status === "success") onSuccess?.();
+  }, [state, onSuccess]);
   const values = state.status === "error" ? state.values : null;
   const errors = state.status === "error" ? state.errors : {};
 
   return (
-    <form action={formAction} className="grid w-full max-w-xl gap-4">
+    <form action={formAction} className="grid w-full gap-4">
       <label className="grid gap-1">
-        <span>Item</span>
+        <span className="text-muted">Item</span>
+        {/* React does not apply a changed defaultValue to a mounted <select>,
+            so the key remounts it with the choice the user had made. */}
         <select
+          key={`item-${values?.itemId ?? ""}`}
           name="itemId"
           required
           defaultValue={values?.itemId ?? ""}
@@ -73,8 +84,9 @@ export function ExpenseForm({
       </label>
 
       <label className="grid gap-1">
-        <span>Paid from</span>
+        <span className="text-muted">Paid from</span>
         <select
+          key={`account-${values?.accountId ?? ""}`}
           name="accountId"
           required
           defaultValue={values?.accountId ?? ""}
@@ -93,7 +105,7 @@ export function ExpenseForm({
       </label>
 
       <label className="grid gap-1">
-        <span>Amount (CLP)</span>
+        <span className="text-muted">Amount (CLP)</span>
         <input
           name="amount"
           type="text"
@@ -108,7 +120,7 @@ export function ExpenseForm({
       </label>
 
       <label className="grid gap-1">
-        <span>Paid on</span>
+        <span className="text-muted">Paid on</span>
         <input
           name="spentOn"
           type="date"
@@ -120,7 +132,9 @@ export function ExpenseForm({
       </label>
 
       <label className="grid gap-1">
-        <span>Counts toward (optional, defaults to the month paid)</span>
+        <span className="text-muted">
+          Counts toward (optional, defaults to the month paid)
+        </span>
         <input
           name="budgetMonth"
           type="month"
@@ -131,7 +145,7 @@ export function ExpenseForm({
       </label>
 
       <label className="grid gap-1">
-        <span>Description (optional)</span>
+        <span className="text-muted">Description (optional)</span>
         <input
           name="description"
           type="text"
@@ -143,16 +157,20 @@ export function ExpenseForm({
       </label>
 
       {state.status === "error" && state.message && (
-        <p role="alert" className="text-red-500">
+        <p role="alert" className="text-expense">
           {state.message}
         </p>
       )}
-      {state.status === "success" && <p role="status">Expense saved</p>}
+      {state.status === "success" && (
+        <p role="status" className="text-income">
+          Expense saved
+        </p>
+      )}
 
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className="rounded-full bg-accent px-5 py-2 text-page transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Saving..." : "Add expense"}
       </button>
@@ -162,7 +180,7 @@ export function ExpenseForm({
 
 function FieldError({ message }: { message: string }) {
   return (
-    <span role="alert" className="text-sm text-red-500">
+    <span role="alert" className="text-sm text-expense">
       {message}
     </span>
   );
