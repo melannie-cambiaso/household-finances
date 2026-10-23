@@ -11,9 +11,11 @@ import { isAllowedEmail } from "@/lib/allowlist";
 // The household owns all data. With two members there is exactly one, created
 // the first time an allowed user signs in.
 async function getOrCreateHouseholdId(): Promise<string> {
+  // Ordered by id so the seed script picks the same row if there are ever several.
   const [existing] = await db
     .select({ id: schema.households.id })
     .from(schema.households)
+    .orderBy(schema.households.id)
     .limit(1);
   if (existing) return existing.id;
 
