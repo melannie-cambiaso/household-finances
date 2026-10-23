@@ -29,9 +29,11 @@ function count(bucket: Record<string, number>, table: string) {
 
 await db.transaction(async (tx) => {
   // The household is created on the first login; create it only if missing.
+  // Ordered by id so this picks the same row as the auth hook if there are ever several.
   let [household] = await tx
     .select({ id: schema.households.id })
     .from(schema.households)
+    .orderBy(schema.households.id)
     .limit(1);
   if (household) {
     count(existing, "households");

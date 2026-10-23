@@ -30,6 +30,11 @@ Branch: `feat/seed-data`
 - Task 2: `39be04c` feat: add idempotent db:seed script. Run on Neon: first run created 3 accounts, 4 income sources, 5 categories, 9 items (household already existed); second run created nothing and found all 21 rows. The script is `.mts` and silences MODULE_TYPELESS_PACKAGE_JSON for that command only, instead of setting `"type": "module"` for the whole project (it could affect Next).
 - Task 3: `2b081e7` docs: document db:seed.
 
+## Review follow-ups (approved review, advisory findings)
+
+- R3-household-pick-unordered (SUGGESTION): the household was picked with `limit(1)` and no order. Fixed in `src/db/seed.mts` and in the auth hook (`src/lib/auth.ts`) with `orderBy(households.id)`, so both always pick the same row.
+- R3-household-create-unverified (WARNING): verified the household-creation branch on a throwaway local Postgres with both migrations applied and no rows: run 1 created 1 household, 3 accounts, 4 income sources, 5 categories, 9 items; run 2 created nothing. The run pointed `DATABASE_URL` at the local database (`loadEnvFile` does not override variables already set), so Neon was not touched. tsc, lint and 15 tests PASS.
+
 ## Not verified
 
-- Seed on an empty database (no household): the branch that creates the household was not exercised on Neon, which already had one.
+- The unordered-pick fix is not covered by a test: it only matters with more than one household, which the app never creates.
