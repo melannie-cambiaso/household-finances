@@ -62,6 +62,12 @@ Some tests need a real Postgres and are skipped unless `TEST_DATABASE_URL` is se
 TEST_DATABASE_URL=postgres://user@localhost:5432/scratch pnpm test
 ```
 
+## Styling
+
+The look (warm dark theme, rounded handwritten-style font, rounded cards, pill buttons, left sidebar) was approximated by eye from a screenshot of a previous project. All colors, radii and fonts are design tokens in `src/app/globals.css` (`@theme`), and components use semantic names such as `bg-surface`, `text-muted`, `text-income` and `rounded-card`, so the whole look is tuned from that one file. The fonts are loaded in `src/app/layout.tsx`. The theme is dark only. Signed-in pages live in the `(app)` route group and share the sidebar in `src/app/(app)/sidebar.tsx`; add an entry to `NAV_ITEMS` when a page ships.
+
+If the dev server keeps showing old styles after you change the tokens, restart `pnpm dev`.
+
 ## Expenses
 
 `/expenses` records spending and lists the expenses of a month (`?month=YYYY-MM`, current month by default). Each expense is recorded against an item and an account, counts toward a budget month (the month it was paid unless you pick another), and freezes the item's reimbursement percentage at that moment. Amounts are whole CLP; dots as thousands separators are accepted. Dates use the America/Santiago time zone. It needs items and accounts: run `pnpm db:seed` first.
