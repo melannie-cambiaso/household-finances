@@ -36,6 +36,13 @@ Branch: `feat/expenses`
 - Task 3: `243198f` feat: add expenses page with form and month list. `shiftMonth` and `todayIn` (Santiago time zone, since the server runs in UTC) added test-first (RED: export missing, GREEN 18/18). tsc, lint, 33 unit tests, build PASS (`/expenses` is Partial Prerender). Dev server: unauthenticated GET and direct POST to `/expenses` redirect to `/login`.
 - Task 4: `0b9595c` docs: document the expenses page and integration tests.
 
+## Review follow-ups (approved review, advisory findings)
+
+- R3-year-zero-dates (WARNING): the date pattern accepted year 0000, which JavaScript parses but Postgres rejects (there is no year zero). Fixed in `7de0b2f`: dates and budget months must fall in 2000-2100 (`MIN_YEAR`/`MAX_YEAR` in `src/lib/expenses.ts`). Test-first: RED 3 failing, GREEN 20/20.
+- R3-action-unhandled-db-error (SUGGESTION): a database failure while saving surfaced as an error page. Fixed in `e350e80`: `createExpense` is wrapped in try/catch and the form shows "Could not save the expense. Try again." keeping the typed values. tsc, lint, 35 tests and build PASS, but this branch of the Server Action is not executed (it needs a session and Next runtime), only compiled.
+- Left for later: R3-order-dependent-test (a service test depends on the earlier tests having run; make each test set up its own rows).
+- These two commits were not reviewed again.
+
 ## Not verified
 
 - The authenticated flow in a browser (submit the form, see the row, the month links, validation errors keeping what was typed): needs the user's Google session. The service is integration-tested, but the Server Action and the React form are only type-checked and built, not exercised.
