@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -12,6 +13,9 @@ async function SessionPanel() {
   return (
     <>
       <p>Signed in as {session.user.email}</p>
+      <Link href="/expenses" className="underline">
+        Expenses
+      </Link>
       <SignOutButton />
     </>
   );
