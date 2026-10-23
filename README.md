@@ -55,3 +55,13 @@ pnpm lint
 pnpm test    # unit tests (Node's built-in test runner)
 pnpm build
 ```
+
+Some tests need a real Postgres and are skipped unless `TEST_DATABASE_URL` is set. Point it at a throwaway database with the migrations applied (never your real one): the tests insert their own rows and delete them afterwards.
+
+```bash
+TEST_DATABASE_URL=postgres://user@localhost:5432/scratch pnpm test
+```
+
+## Expenses
+
+`/expenses` records spending and lists the expenses of a month (`?month=YYYY-MM`, current month by default). Each expense is recorded against an item and an account, counts toward a budget month (the month it was paid unless you pick another), and freezes the item's reimbursement percentage at that moment. Amounts are whole CLP; dots as thousands separators are accepted. Dates use the America/Santiago time zone. It needs items and accounts: run `pnpm db:seed` first.
