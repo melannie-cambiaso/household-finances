@@ -1,13 +1,12 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { auth } from "@/lib/auth";
+import { getAllowedSession } from "@/lib/session";
 
 import { SignOutButton } from "./sign-out-button";
 
 async function SessionPanel() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getAllowedSession();
   if (!session) redirect("/login");
 
   return (

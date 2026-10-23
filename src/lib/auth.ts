@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -56,6 +57,24 @@ export const auth = betterAuth({
     },
   },
   databaseHooks: {
+    session: {
+      create: {
+        // The user hook below only runs when a user is first created. Checking
+        // here too means someone removed from the allowlist cannot sign in again.
+        before: async (session) => {
+          const [user] = await db
+            .select({ email: schema.users.email })
+            .from(schema.users)
+            .where(eq(schema.users.id, session.userId))
+            .limit(1);
+          if (!user || !isAllowedEmail(user.email, process.env.ALLOWED_EMAILS)) {
+            throw new APIError("FORBIDDEN", {
+              message: "This email is not allowed to sign in",
+            });
+          }
+        },
+      },
+    },
     user: {
       create: {
         before: async (user) => {

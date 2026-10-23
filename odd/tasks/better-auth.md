@@ -35,6 +35,10 @@ Branch: `feat/better-auth`
 
 - First real Google login failed with `MISSING_FIELD: householdId is required`: Better Auth validates `required` additional fields against the provider profile before `databaseHooks.user.create.before` runs (`better-auth/dist/db/schema.mjs`). Fix: `householdId` is `required: false` in the Better Auth config; the DB column stays NOT NULL and the hook always sets it. My earlier temporary check missed this because `internalAdapter.createUser` skips that validation.
 
+- Review finding R1 (risk lens, WARNING): the allowlist only ran when a user was first created, so someone removed from `ALLOWED_EMAILS` kept existing sessions and could sign in again. Fix: `databaseHooks.session.create.before` rejects non-allowlisted users on new sessions, and `getAllowedSession()` (`src/lib/session.ts`) cuts existing sessions on page load. Verified against Neon with a temporary route (deleted): unknown user and removed-from-allowlist user -> FORBIDDEN, allowed user -> session created (then cleaned up). tsc, lint, 7 tests, build PASS. The first check showed no rejection because the dev server held the old `auth.ts` in memory; after restarting it the hook ran. Restart the dev server after changing `src/lib/auth.ts`.
+- Review finding R2 (risk lens, WARNING): `.env.example` had a guessable `BETTER_AUTH_SECRET`; secrets now empty (amend `b64805a`).
+- The native review lineage for this branch was abandoned by the user (`operator_disposition`): only the risk lens ran; resilience, readability and reliability were never executed. The branch has no approved review.
+
 ## Not verified
 
 - Real Google login end to end and the allowed-email path (create user + household): needs the user's Google OAuth credentials and `ALLOWED_EMAILS` in `.env`.
