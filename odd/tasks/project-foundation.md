@@ -9,7 +9,7 @@ Branch: `feat/project-foundation`
 ## Tasks
 
 - [x] 1. Scaffold Next.js app with pnpm (TypeScript, App Router, Tailwind, ESLint) and create the feature branch
-- [ ] 2. Install Drizzle (drizzle-orm, drizzle-kit, postgres driver) and add config
+- [x] 2. Install Drizzle (drizzle-orm, drizzle-kit, postgres driver) and add config
 - [ ] 3. Define the schema per data-model.md (enums, tables, FKs, CHECK on budget_lines) — test-first where applicable
 - [ ] 4. Generate the initial migration and verify the SQL
 - [ ] 5. Add .env.example, README with setup steps, and close
