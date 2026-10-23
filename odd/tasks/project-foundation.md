@@ -19,3 +19,4 @@ Branch: `feat/project-foundation`
 (one work-unit commit per task, recorded here)
 
 - Task 1: `2209492` Initial commit from Create Next App (scaffold, includes docs/); lint + build verified PASS. Tracking files committed right after on `feat/project-foundation`.
+- Task 2: `1b6497f` chore: add Drizzle ORM, postgres driver and drizzle-kit config; tsc + lint PASS.
