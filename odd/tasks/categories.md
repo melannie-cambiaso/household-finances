@@ -30,7 +30,7 @@ Branch: `feat/categories`
 
 - [x] 1. Pure logic (`src/lib/catalog.ts`): validate category names and item input, name comparison — test-first (S3, S7)
 - [x] 2. Category service: list with items, create, rename, delete with usage rule — test-first with integration test (S1, S6)
-- [ ] 3. Item service: create, update (rename, percentage, move), delete with usage rule — test-first with integration test (S3, S4, S6)
+- [x] 3. Item service: create, update (rename, percentage, move), delete with usage rule — test-first with integration test (S3, S4, S6)
 - [ ] 4. Server Actions and the `/categories` page with a sidebar entry
 - [ ] 5. README and close
 
