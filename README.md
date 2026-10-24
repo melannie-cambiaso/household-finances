@@ -143,3 +143,13 @@ The database migrations are not run by the deployment. Apply them with `pnpm db:
 `package.json` pins `pnpm@12.15.0`, which Vercel does not officially support yet (see vercel/vercel issues 17434 and 17560). Do not set `ENABLE_EXPERIMENTAL_COREPACK`: it would force pnpm 12 and is known to fail.
 
 The first deployment failed at the install step with `ERR_PNPM_IGNORED_BUILDS`: a recent pnpm refuses to finish while a dependency with an install script has no explicit decision, and CI treats that as an error (locally it only warns, because the packages are installed anyway). `pnpm-workspace.yaml` now says `esbuild: false`, meaning its install script is reviewed and not run. esbuild works without it and is only used by `drizzle-kit`, a development tool. If a new dependency with an install script is added, the same error comes back until it is listed under `allowBuilds`; reproduce it with `CI=true pnpm install --frozen-lockfile`.
+
+## Categories and items
+
+`/categories` is where the household shapes its own budget: the categories and the items inside them. The sample data from `pnpm db:seed` is only a starting point; every part of it can be changed or removed from this page.
+
+- **Categories** can be added, renamed and deleted. **Items** can be added, renamed, moved to another category and given a reimbursement percentage (blank means not reimbursable).
+- Names are trimmed, at most 60 characters. A category name is unique in the household and an item name is unique inside its category, ignoring upper and lower case and repeated spaces.
+- **An item that has expenses or budget lines cannot be deleted**, and neither can a category that still has items. The page says what blocks it. To get rid of an item that was used, rename it, or edit those expenses to use another item and delete it once nothing points to it.
+- Changing an item's percentage affects only expenses recorded afterwards: each expense keeps the percentage it was created with. Moving an item to another category regroups its past months under the new category in the totals, because a category total is the sum of its items.
+- There is no archive and no undo.
