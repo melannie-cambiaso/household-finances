@@ -15,8 +15,9 @@ import { getSavingsDebt, listTransfers } from "@/lib/transfer-service";
 import { debtStanding, transferKindLabel } from "@/lib/transfers";
 import { getAllowedSession } from "@/lib/session";
 
+import { Modal } from "../modal";
 import { DeleteTransferButton } from "./delete-transfer-button";
-import { TransferDialog } from "./transfer-dialog";
+import { TransferForm } from "./transfer-form";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -139,13 +140,16 @@ async function TransfersContent({
           </p>
         ) : (
           <div className="flex justify-end">
-            <TransferDialog
+            <Modal
               triggerLabel="+ Add transfer"
               triggerClassName="rounded-full bg-accent px-5 py-2 text-page transition-opacity hover:opacity-90"
               title="Add a transfer"
-              accounts={accounts}
-              today={today}
-            />
+            >
+              <TransferForm
+                accounts={accounts}
+                today={today}
+              />
+            </Modal>
           </div>
         )}
 
@@ -174,23 +178,26 @@ async function TransfersContent({
                       {formatClp(transfer.amount)}
                     </p>
                     <div className="mt-2 flex justify-end gap-2">
-                      <TransferDialog
+                      <Modal
                         triggerLabel="Edit"
                         triggerClassName={rowButtonClass}
                         title="Edit transfer"
-                        accounts={accounts}
-                        today={today}
-                        transfer={{
-                          id: transfer.id,
-                          values: {
-                            fromAccountId: transfer.fromAccountId,
-                            toAccountId: transfer.toAccountId,
-                            amount: String(transfer.amount),
-                            madeOn: transfer.madeOn,
-                            kind: transfer.kind,
-                          },
-                        }}
-                      />
+                      >
+                        <TransferForm
+                          accounts={accounts}
+                          today={today}
+                          transfer={{
+                            id: transfer.id,
+                            values: {
+                              fromAccountId: transfer.fromAccountId,
+                              toAccountId: transfer.toAccountId,
+                              amount: String(transfer.amount),
+                              madeOn: transfer.madeOn,
+                              kind: transfer.kind,
+                            },
+                          }}
+                        />
+                      </Modal>
                       <DeleteTransferButton
                         transferId={transfer.id}
                         className={rowButtonClass}

@@ -8,6 +8,7 @@ import {
   type IncomeFormState,
   type IncomeFormValues,
 } from "./actions";
+import { useModalClose } from "../modal";
 
 type SourceOption = {
   id: string;
@@ -31,7 +32,6 @@ export function IncomeForm({
   pending,
   today,
   income,
-  onSuccess,
 }: {
   sources: SourceOption[];
   accounts: AccountOption[];
@@ -39,17 +39,17 @@ export function IncomeForm({
   today: string;
   // Present when editing: the income id and the values to pre-fill.
   income?: { id: string; values: IncomeFormValues };
-  // Called after an income is saved, e.g. to close the dialog around the form.
-  onSuccess?: () => void;
 }) {
   const [state, formAction, isSaving] = useActionState(
     income ? updateIncomeAction : createIncomeAction,
     initialState,
   );
 
+  const close = useModalClose();
+
   useEffect(() => {
-    if (state.status === "success") onSuccess?.();
-  }, [state, onSuccess]);
+    if (state.status === "success") close();
+  }, [state, close]);
   // After a failed save the form shows what was typed, not the stored values.
   const values =
     state.status === "error" ? state.values : (income?.values ?? null);

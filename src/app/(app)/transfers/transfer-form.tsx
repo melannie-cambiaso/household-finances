@@ -10,6 +10,7 @@ import {
   type TransferFormState,
   type TransferFormValues,
 } from "./actions";
+import { useModalClose } from "../modal";
 
 type AccountOption = { id: string; name: string };
 
@@ -22,23 +23,22 @@ export function TransferForm({
   accounts,
   today,
   transfer,
-  onSuccess,
 }: {
   accounts: AccountOption[];
   today: string;
   // Present when editing: the transfer id and the values to pre-fill.
   transfer?: { id: string; values: TransferFormValues };
-  // Called after a transfer is saved, e.g. to close the dialog around the form.
-  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(
     transfer ? updateTransferAction : createTransferAction,
     initialState,
   );
 
+  const close = useModalClose();
+
   useEffect(() => {
-    if (state.status === "success") onSuccess?.();
-  }, [state, onSuccess]);
+    if (state.status === "success") close();
+  }, [state, close]);
   // After a failed save the form shows what was typed, not the stored values.
   const values =
     state.status === "error" ? state.values : (transfer?.values ?? null);

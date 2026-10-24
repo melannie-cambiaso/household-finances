@@ -18,8 +18,9 @@ import {
 } from "@/lib/expenses";
 import { getAllowedSession } from "@/lib/session";
 
+import { Modal } from "../modal";
 import { DeleteExpenseButton } from "./delete-expense-button";
-import { ExpenseDialog } from "./expense-dialog";
+import { ExpenseForm } from "./expense-form";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -107,14 +108,17 @@ async function ExpensesContent({
           </p>
         ) : (
           <div className="flex justify-end">
-            <ExpenseDialog
+            <Modal
               triggerLabel="+ Add expense"
               triggerClassName="rounded-full bg-accent px-5 py-2 text-page transition-opacity hover:opacity-90"
               title="Add an expense"
-              items={items}
-              accounts={accounts}
-              today={today}
-            />
+            >
+              <ExpenseForm
+                items={items}
+                accounts={accounts}
+                today={today}
+              />
+            </Modal>
           </div>
         )}
 
@@ -165,26 +169,29 @@ async function ExpensesContent({
                       </p>
                     )}
                     <div className="mt-2 flex justify-end gap-2">
-                      <ExpenseDialog
+                      <Modal
                         triggerLabel="Edit"
                         triggerClassName={rowButtonClass}
                         title="Edit expense"
-                        items={items}
-                        accounts={accounts}
-                        today={today}
-                        expense={{
-                          id: expense.id,
-                          values: {
-                            itemId: expense.itemId,
-                            accountId: expense.accountId,
-                            amount: String(expense.amount),
-                            spentOn: expense.spentOn,
-                            // The month input takes YYYY-MM.
-                            budgetMonth: expense.budgetMonth.slice(0, 7),
-                            description: expense.description ?? "",
-                          },
-                        }}
-                      />
+                      >
+                        <ExpenseForm
+                          items={items}
+                          accounts={accounts}
+                          today={today}
+                          expense={{
+                            id: expense.id,
+                            values: {
+                              itemId: expense.itemId,
+                              accountId: expense.accountId,
+                              amount: String(expense.amount),
+                              spentOn: expense.spentOn,
+                              // The month input takes YYYY-MM.
+                              budgetMonth: expense.budgetMonth.slice(0, 7),
+                              description: expense.description ?? "",
+                            },
+                          }}
+                        />
+                      </Modal>
                       <DeleteExpenseButton
                         expenseId={expense.id}
                         className={rowButtonClass}

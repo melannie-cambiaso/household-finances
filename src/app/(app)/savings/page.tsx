@@ -13,7 +13,7 @@ import {
 import { getSavingsOverview } from "@/lib/savings-service";
 import { getAllowedSession } from "@/lib/session";
 
-import { Modal } from "../categories/modal";
+import { Modal } from "../modal";
 import { OpeningBalanceForm } from "./opening-balance-form";
 
 const TIME_ZONE = "America/Santiago";

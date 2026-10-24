@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 
-import { useModalClose } from "../categories/modal";
+import { useModalClose } from "../modal";
 import {
   setOpeningBalanceAction,
   type OpeningBalanceFormState,
