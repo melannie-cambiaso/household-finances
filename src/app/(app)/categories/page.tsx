@@ -9,7 +9,7 @@ import { deleteCategoryAction, deleteItemAction } from "./actions";
 import { CategoryForm } from "./category-form";
 import { DeleteButton } from "./delete-button";
 import { ItemForm } from "./item-form";
-import { Modal } from "./modal";
+import { Modal } from "../modal";
 
 const rowButtonClass =
   "rounded-full border border-line px-3 py-0.5 text-sm text-muted transition-colors hover:bg-page hover:text-text";
