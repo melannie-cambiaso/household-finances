@@ -9,9 +9,12 @@ import postgres from "postgres";
 import * as schema from "../db/schema.ts";
 import {
   createIncome,
+  deleteIncome,
+  getIncome,
   listIncomes,
   listIncomeSources,
   listPendingReimbursements,
+  updateIncome,
 } from "./income-service.ts";
 
 // Integration test: needs a Postgres with the migrations applied.
@@ -361,5 +364,207 @@ describe("income service", { skip: !url }, () => {
 
     const foreign = await listPendingReimbursements(db, other.householdId);
     assert.ok(foreign.every((p) => p.id !== untouched && p.id !== partial));
+  });
+
+  describe("edit and delete", () => {
+    // Each test builds its own households, so none depends on another.
+    const ctxOf = (seed: Seed) => ({
+      householdId: seed.householdId,
+      userId: seed.userId,
+    });
+    const inputOf = (seed: Seed) => ({
+      incomeSourceId: seed.fixedSourceId,
+      accountId: seed.accountId,
+      amount: 1_500_000,
+      receivedOn: "2026-10-28",
+      budgetMonth: "2026-10-01",
+      relatedExpenseId: null as string | null,
+    });
+
+    async function makeIncome(seed: Seed, overrides: Partial<ReturnType<typeof inputOf>> = {}) {
+      const result = await createIncome(db, ctxOf(seed), { ...inputOf(seed), ...overrides });
+      assert.equal(result.ok, true);
+      return result.ok ? result.id : "";
+    }
+
+    async function rowOf(id: string) {
+      const [row] = await db
+        .select()
+        .from(schema.incomes)
+        .where(eq(schema.incomes.id, id));
+      return row;
+    }
+
+    async function secondAccount(seed: Seed) {
+      const [account] = await db
+        .insert(schema.accounts)
+        .values({ householdId: seed.householdId, name: "Savings", kind: "savings" })
+        .returning();
+      return account.id;
+    }
+
+    it("gets an income of the household and nothing else", async () => {
+      const seed = await seedHousehold("inc-get-mine");
+      const otherSeed = await seedHousehold("inc-get-other");
+      const id = await makeIncome(seed);
+      const foreign = await makeIncome(otherSeed);
+
+      const found = await getIncome(db, seed.householdId, id);
+      assert.equal(found?.amount, 1_500_000);
+      assert.equal(found?.incomeSourceId, seed.fixedSourceId);
+      assert.equal(found?.relatedExpenseId, null);
+
+      assert.equal(await getIncome(db, seed.householdId, foreign), null);
+      assert.equal(await getIncome(db, seed.householdId, randomUUID()), null);
+    });
+
+    it("updates the fields and keeps the author", async () => {
+      const seed = await seedHousehold("inc-update");
+      const id = await makeIncome(seed);
+      const account2 = await secondAccount(seed);
+
+      const result = await updateIncome(db, ctxOf(seed), id, {
+        ...inputOf(seed),
+        incomeSourceId: seed.reimbursementSourceId,
+        accountId: account2,
+        amount: 42_000,
+        receivedOn: "2026-11-03",
+        budgetMonth: "2026-11-01",
+      });
+      assert.deepEqual(result, { ok: true });
+
+      const row = await rowOf(id);
+      assert.equal(row.incomeSourceId, seed.reimbursementSourceId);
+      assert.equal(row.accountId, account2);
+      assert.equal(row.amount, 42_000);
+      assert.equal(row.receivedOn, "2026-11-03");
+      assert.equal(row.budgetMonth, "2026-11-01");
+      assert.equal(row.createdBy, seed.userId);
+    });
+
+    it("links a reimbursement to an expense and unlinks it again", async () => {
+      const seed = await seedHousehold("inc-link");
+      const expenseId = await insertExpense(seed, seed.reimbursableItemId, 100_000, 70);
+      const id = await makeIncome(seed, { incomeSourceId: seed.reimbursementSourceId, amount: 30_000 });
+
+      assert.deepEqual(
+        await updateIncome(db, ctxOf(seed), id, {
+          ...inputOf(seed),
+          incomeSourceId: seed.reimbursementSourceId,
+          amount: 30_000,
+          relatedExpenseId: expenseId,
+        }),
+        { ok: true },
+      );
+      assert.equal((await rowOf(id)).relatedExpenseId, expenseId);
+      const linked = await listPendingReimbursements(db, seed.householdId);
+      assert.equal(linked[0].pending, 40_000, "the link lowers what is pending");
+
+      assert.deepEqual(
+        await updateIncome(db, ctxOf(seed), id, {
+          ...inputOf(seed),
+          incomeSourceId: seed.reimbursementSourceId,
+          amount: 30_000,
+          relatedExpenseId: null,
+        }),
+        { ok: true },
+      );
+      assert.equal((await rowOf(id)).relatedExpenseId, null);
+      const unlinked = await listPendingReimbursements(db, seed.householdId);
+      assert.equal(unlinked[0].pending, 70_000, "unlinking restores it");
+    });
+
+    it("applies the creation rules to an edit and changes nothing when it refuses", async () => {
+      const seed = await seedHousehold("inc-rules");
+      const otherSeed = await seedHousehold("inc-rules-other");
+      const id = await makeIncome(seed);
+      const reimbursable = await insertExpense(seed, seed.reimbursableItemId, 80_000, 70);
+      const plain = await insertExpense(seed, seed.plainItemId, 20_000, null);
+      const foreignExpense = await insertExpense(otherSeed, otherSeed.reimbursableItemId, 50_000, 70);
+
+      const cases: [string, Partial<ReturnType<typeof inputOf>>, string][] = [
+        ["source of another household", { incomeSourceId: otherSeed.fixedSourceId }, "source_not_found"],
+        ["account of another household", { accountId: otherSeed.accountId }, "account_not_found"],
+        [
+          "expense of another household",
+          { incomeSourceId: seed.reimbursementSourceId, relatedExpenseId: foreignExpense },
+          "expense_not_found",
+        ],
+        [
+          "a non-reimbursement source linked to an expense",
+          { relatedExpenseId: reimbursable },
+          "source_not_reimbursement",
+        ],
+        [
+          "a non-reimbursable expense",
+          { incomeSourceId: seed.reimbursementSourceId, relatedExpenseId: plain },
+          "expense_not_reimbursable",
+        ],
+      ];
+      for (const [label, overrides, error] of cases) {
+        const result = await updateIncome(db, ctxOf(seed), id, {
+          ...inputOf(seed),
+          amount: 1,
+          ...overrides,
+        });
+        assert.deepEqual(result, { ok: false, error }, label);
+      }
+
+      const row = await rowOf(id);
+      assert.equal(row.amount, 1_500_000);
+      assert.equal(row.incomeSourceId, seed.fixedSourceId);
+      assert.equal(row.relatedExpenseId, null);
+    });
+
+    it("cannot update an income of another household", async () => {
+      const seed = await seedHousehold("inc-upd-attacker");
+      const victim = await seedHousehold("inc-upd-victim");
+      const id = await makeIncome(victim);
+
+      const result = await updateIncome(db, ctxOf(seed), id, { ...inputOf(seed), amount: 1 });
+      assert.deepEqual(result, { ok: false, error: "income_not_found" });
+      assert.equal((await rowOf(id)).amount, 1_500_000);
+
+      const missing = await updateIncome(db, ctxOf(seed), randomUUID(), inputOf(seed));
+      assert.deepEqual(missing, { ok: false, error: "income_not_found" });
+    });
+
+    it("deletes an income, and the expense it covered is pending again", async () => {
+      const seed = await seedHousehold("inc-delete");
+      const expenseId = await insertExpense(seed, seed.reimbursableItemId, 100_000, 70);
+      const id = await makeIncome(seed, {
+        incomeSourceId: seed.reimbursementSourceId,
+        amount: 70_000,
+        relatedExpenseId: expenseId,
+      });
+      const keep = await makeIncome(seed);
+      assert.deepEqual(await listPendingReimbursements(db, seed.householdId), []);
+
+      assert.deepEqual(await deleteIncome(db, seed.householdId, id), { ok: true });
+
+      assert.equal(await getIncome(db, seed.householdId, id), null);
+      assert.ok(await getIncome(db, seed.householdId, keep), "other incomes are untouched");
+      const pending = await listPendingReimbursements(db, seed.householdId);
+      assert.deepEqual(
+        pending.map((p) => [p.id, p.pending]),
+        [[expenseId, 70_000]],
+      );
+    });
+
+    it("cannot delete an income of another household or one that does not exist", async () => {
+      const seed = await seedHousehold("inc-del-attacker");
+      const victim = await seedHousehold("inc-del-victim");
+      const id = await makeIncome(victim);
+
+      assert.deepEqual(await deleteIncome(db, seed.householdId, id), {
+        ok: false,
+        error: "income_not_found",
+      });
+      assert.deepEqual(await deleteIncome(db, seed.householdId, randomUUID()), {
+        ok: false,
+        error: "income_not_found",
+      });
+      assert.ok(await getIncome(db, victim.householdId, id), "the victim's income survives");
+    });
   });
 });
