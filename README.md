@@ -115,3 +115,31 @@ The home page summarizes one month (`?month=YYYY-MM`, current month by default):
 The **savings debt** is never stored. It is computed on every visit as everything spent from savings accounts minus the repayments made into a savings account, over all time: a funding or an other transfer into savings does not pay it. It is shown at the top of `/transfers` and of the dashboard whenever it is above zero, and it disappears when it is zero or when more was repaid than spent.
 
 Account balances are not shown yet.
+
+## Deploying to Vercel
+
+The app deploys from the GitHub repository: every push to `main` creates a production deployment.
+
+1. **Create the project.** In Vercel, import the repository. Keep the default build settings (`next build`).
+2. **Set the environment variables** (Project Settings → Environment Variables, for Production):
+
+| Variable | Value |
+| --- | --- |
+| `DATABASE_URL` | The Neon pooled connection string (the host contains `-pooler`). Using the same database as local development means both see the same data. |
+| `BETTER_AUTH_SECRET` | A new secret for production: `openssl rand -base64 32`. |
+| `BETTER_AUTH_URL` | The production URL, e.g. `https://your-app.vercel.app`. It is only known after the first deployment, so set it and redeploy. |
+| `GOOGLE_CLIENT_ID` | From the Google OAuth client. |
+| `GOOGLE_CLIENT_SECRET` | From the Google OAuth client. |
+| `ALLOWED_EMAILS` | Comma-separated emails allowed to sign in. If it is empty nobody can sign in. |
+
+3. **Deploy once** to get the production URL.
+4. **Point the login at that URL.** Set `BETTER_AUTH_URL` to it, and in the Google Cloud console add `https://your-app.vercel.app/api/auth/callback/google` to the OAuth client's authorized redirect URIs. If the OAuth consent screen is in testing mode, both emails must be listed as test users.
+5. **Redeploy** (a new deployment is needed for the changed variable to apply), then sign in.
+
+The database migrations are not run by the deployment. Apply them with `pnpm db:migrate` against the database before deploying a change that adds a migration.
+
+### The pnpm version
+
+`package.json` pins `pnpm@12.15.0`, which Vercel does not officially support yet (see vercel/vercel issues 17434 and 17560). Do not set `ENABLE_EXPERIMENTAL_COREPACK`: it would force pnpm 12 and is known to fail.
+
+The first deployment failed at the install step with `ERR_PNPM_IGNORED_BUILDS`: a recent pnpm refuses to finish while a dependency with an install script has no explicit decision, and CI treats that as an error (locally it only warns, because the packages are installed anyway). `pnpm-workspace.yaml` now says `esbuild: false`, meaning its install script is reviewed and not run. esbuild works without it and is only used by `drizzle-kit`, a development tool. If a new dependency with an install script is added, the same error comes back until it is listed under `allowBuilds`; reproduce it with `CI=true pnpm install --frozen-lockfile`.
