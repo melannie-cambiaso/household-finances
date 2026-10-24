@@ -55,12 +55,12 @@ Branch: `feat/budget`
 
 - L1 (user): "Arranquemos con el presupuesto mensual" — the next feature after incomes; earlier described by the assistant as "copiar el mes anterior como borrador, confirmarlo para bloquearlo y ver el progreso contra lo presupuestado".
 - L2 (user): chose "Presupuesto + progreso" as the scope of the first delivery (page `/budget`: create or copy the month, edit draft amounts, confirm to lock, planned vs. actual by item and category for expenses and by source for incomes).
-- L3 (user): "ya lo probé y funciona perfecto" — manual browser check of `/budget` done by the user; no details given on which steps (create, edit, confirm, progress) were exercised.
+- L3 (user): "ya lo probé y funciona perfecto", then "creé un presupuesto y funcionó, lo edité, lo confirmé y el progreso están bien" — manual browser check of `/budget` by the user covering create, edit, confirm and progress.
 
 
 ## Not verified
 
-- (Resolved) The author tried `/budget` in the browser with their own session and reported that it works ("ya lo probé y funciona perfecto"). The notes below remain unverified.
+- (Resolved) The author exercised create, edit, confirm and the progress section of `/budget` in the browser with their own session and reported that all of it works. The notes below remain unverified.
 - Concurrency of `saveBudgetLines` vs. `confirmBudgetMonth` (the `FOR UPDATE` on the month row): written to stop a save slipping in after a confirmation, but no test races the two calls.
 - Two simultaneous `createBudgetMonth` calls (the `ON CONFLICT DO NOTHING` path): reasoned, not raced.
 - Create and confirm are form actions that return nothing, so a failure is only logged and shown as an unchanged page.
