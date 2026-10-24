@@ -23,7 +23,7 @@ Branch: `refactor/unify-modals`
 ## Tasks
 
 - T1 (S2): move `Modal` to `src/app/(app)/modal.tsx` and update the imports of `/categories` and `/savings`. Route: inline. Done, commit 99bc75e: git sees a pure rename; /categories and /savings only change their import; tsc and lint clean.
-- T2 (S3-S5): expenses: the form closes the modal itself, the page uses `Modal`, `expense-dialog.tsx` is deleted. Route: inline. Commit: pending.
+- T2 (S3-S5): expenses: the form closes the modal itself, the page uses `Modal`, `expense-dialog.tsx` is deleted. Route: inline. Done, commit 727013f: ExpenseForm closes the modal with useModalClose, the page renders Modal and ExpenseForm in both places (add and edit), expense-dialog.tsx deleted; tsc and lint clean, no reference left.
 - T3 (S3-S5): incomes, same. Route: inline. Commit: pending.
 - T4 (S3-S5): transfers, same. Route: inline. Commit: pending.
 - T5: independent verification by reading, build, close with a "Not verified" list. Route: inline plus one `gentle-ai-verify`. Commit: pending.
@@ -31,6 +31,7 @@ Branch: `refactor/unify-modals`
 ## Commits
 
 - 99bc75e refactor: move the generic Modal to a shared file (T1)
+- 727013f refactor: use the shared Modal on the expenses page (T2)
 
 ## Log
 
