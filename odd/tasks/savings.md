@@ -49,10 +49,11 @@ Branch: `feat/savings`
 - L1 (user): "quiero que hagamos otro módulo para trackear los ahorros"
 - L2 (user): chose "Saldo y movimientos" for the scope.
 - L3 (user): chose "Lo cargo yo una vez" for the starting point of the balance.
+- L4 (user): chose "Sí, aplicala" to apply migration 0002 to the real database.
 
 ## Not verified
 
-- Migration 0002 is applied only to the Neon test branch. It is NOT applied to the real database: until it is, the new code cannot read `accounts` there. It has to be applied before merging, with the user's explicit OK.
+- (Resolved) Migration 0002 was applied to the real database with the user's explicit OK (L4). Checked by reading: 3 migrations registered, `accounts` has `opening_balance` and `opening_balance_on` both nullable, and the 3 accounts are unchanged with both columns null.
 - The page was never opened in a browser with a session: how it looks, the modal, the form messages (invalid amount, future date) and the month navigation are unseen.
 - The action's own session check was not exercised: the fake POST is stopped by the access proxy first.
 - Reading `accounts` now selects two more columns in every module; the full suite passes against the test branch, but the real database has not been touched.
