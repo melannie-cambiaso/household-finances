@@ -42,6 +42,7 @@ Branch: `feat/savings`
 - 9a68c4c feat: add optional opening balance columns to accounts (T2)
 - 3d311da feat: derive savings balances and monthly statements (T3)
 - c1e4981 feat: add the savings page with opening balance and monthly statement (T4)
+- 9ca2ada docs: document the savings page and the opening balance (T5)
 
 ## Log
 
