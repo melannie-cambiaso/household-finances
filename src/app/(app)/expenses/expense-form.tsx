@@ -8,6 +8,7 @@ import {
   type ExpenseFormState,
   type ExpenseFormValues,
 } from "./actions";
+import { useModalClose } from "../modal";
 
 type ItemOption = {
   id: string;
@@ -38,24 +39,23 @@ export function ExpenseForm({
   accounts,
   today,
   expense,
-  onSuccess,
 }: {
   items: ItemOption[];
   accounts: AccountOption[];
   today: string;
   // Present when editing: the expense id and the values to pre-fill.
   expense?: { id: string; values: ExpenseFormValues };
-  // Called after an expense is saved, e.g. to close the dialog around the form.
-  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(
     expense ? updateExpenseAction : createExpenseAction,
     initialState,
   );
 
+  const close = useModalClose();
+
   useEffect(() => {
-    if (state.status === "success") onSuccess?.();
-  }, [state, onSuccess]);
+    if (state.status === "success") close();
+  }, [state, close]);
   // After a failed save the form shows what was typed, not the stored values.
   const values =
     state.status === "error" ? state.values : (expense?.values ?? null);
