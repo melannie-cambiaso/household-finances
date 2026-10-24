@@ -45,3 +45,31 @@ jobs:
       # in the "Tests (Postgres)" job.
       - name: Unit tests
         run: pnpm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Fake values, not secrets: the build never connects to the database or to
+    # Google. The code only needs the variables to exist when it is imported.
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      BETTER_AUTH_SECRET: ci-build-secret-0123456789abcdef0123456789abcdef
+      BETTER_AUTH_URL: http://localhost:3000
+      GOOGLE_CLIENT_ID: ci-fake-client-id
+      GOOGLE_CLIENT_SECRET: ci-fake-client-secret
+      ALLOWED_EMAILS: ci@example.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
