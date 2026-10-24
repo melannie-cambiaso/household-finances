@@ -36,6 +36,7 @@ Branch: `feat/edit-delete`
 ## Commits
 
 (one work-unit commit per task, recorded here)
+- Task 1: `3875c51` feat: edit and delete expenses in the expense service. RED (deleteExpense not exported), GREEN 14/14 on the Neon branch copy (the 6 existing tests still pass, 8 new): get only within the household; update keeps the author and the frozen percentage (even after the item's percentage changed); changing the item re-freezes from the new item; item/account from another household rejected with the row unchanged; another household's expense cannot be updated; making an expense non-reimbursable while incomes are linked is refused; delete keeps the linked incomes as plain incomes (S2); another household's expense and its link survive a delete attempt. Full suite 105/105, tsc and lint clean, 0 leftover rows.
 
 ## Log
 
