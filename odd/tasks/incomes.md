@@ -36,6 +36,8 @@ Branch: `feat/incomes`
 
 (one work-unit commit per task, recorded here)
 
+- Task 1: `ee4e4d4` feat: add income validation and pending reimbursement helpers. RED (module not found), GREEN 43/43 (8 new), tsc and lint clean.
+
 ## Log
 
 - L1 (user): "si, arranquemos con eso" — after the assistant recommended "ingresos y reembolsos" as the next feature (register incomes incl. Friday income, link a reimbursement income to an expense, pending-reimbursement view).
