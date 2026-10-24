@@ -221,3 +221,9 @@ export function buildProgressReport(input: {
     ),
   };
 }
+
+/** Width (0-100) of a progress bar: percent used, capped; full when spending has no plan. */
+export function barWidth(progress: Progress): number {
+  if (progress.percent === null) return progress.actual > 0 ? 100 : 0;
+  return Math.min(100, progress.percent);
+}

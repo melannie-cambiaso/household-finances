@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  barWidth,
   buildProgressReport,
   fridaysInMonth,
   parseBudgetForm,
@@ -206,5 +207,22 @@ describe("buildProgressReport", () => {
   it("totals expenses and incomes", () => {
     assert.deepEqual(report.expenseTotal, progressOf(600_000, 650_000));
     assert.deepEqual(report.incomeTotal, progressOf(1_540_000, 1_510_000));
+  });
+});
+
+describe("barWidth", () => {
+  it("is the percent used, capped at 100", () => {
+    assert.equal(barWidth(progressOf(100_000, 25_000)), 25);
+    assert.equal(barWidth(progressOf(100_000, 100_000)), 100);
+    assert.equal(barWidth(progressOf(100_000, 250_000)), 100);
+  });
+
+  it("is full when something was spent without a plan, and empty when nothing happened", () => {
+    assert.equal(barWidth(progressOf(0, 5_000)), 100);
+    assert.equal(barWidth(progressOf(0, 0)), 0);
+  });
+
+  it("is empty when nothing was spent against a plan", () => {
+    assert.equal(barWidth(progressOf(100_000, 0)), 0);
   });
 });

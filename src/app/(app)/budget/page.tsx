@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { db } from "@/db";
-import { getBudgetMonth } from "@/lib/budget-service";
+import type { ProgressReport } from "@/lib/budget";
+import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
 import { listItems } from "@/lib/expense-service";
 import {
   formatClp,
@@ -17,6 +18,7 @@ import { getAllowedSession } from "@/lib/session";
 
 import { confirmBudgetAction, createBudgetAction } from "./actions";
 import { BudgetEditor } from "./budget-editor";
+import { ProgressSection } from "./progress-section";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -57,10 +59,11 @@ async function BudgetContent({ searchParams }: { searchParams: SearchParams }) {
     today,
   );
 
-  const [items, sources, budget] = await Promise.all([
+  const [items, sources, budget, report] = await Promise.all([
     listItems(db, householdId),
     listIncomeSources(db, householdId),
     getBudgetMonth(db, householdId, month),
+    getBudgetProgress(db, householdId, month),
   ]);
 
   // Planned amounts keyed by the editor's field names.
@@ -130,6 +133,7 @@ async function BudgetContent({ searchParams }: { searchParams: SearchParams }) {
               </span>{" "}
               You can change it freely until you confirm it.
             </p>
+            <ProgressSection report={report} />
             <BudgetEditor
               month={month}
               items={items}
@@ -156,6 +160,7 @@ async function BudgetContent({ searchParams }: { searchParams: SearchParams }) {
           </>
         ) : (
           <ConfirmedBudget
+            report={report}
             planned={planned}
             items={items}
             sources={sources}
@@ -168,11 +173,13 @@ async function BudgetContent({ searchParams }: { searchParams: SearchParams }) {
 }
 
 function ConfirmedBudget({
+  report,
   planned,
   items,
   sources,
   confirmedAt,
 }: {
+  report: ProgressReport;
   planned: Record<string, string>;
   items: { id: string; name: string; categoryName: string }[];
   sources: { id: string; name: string }[];
@@ -190,6 +197,8 @@ function ConfirmedBudget({
         This budget is locked
         {confirmedAt && ` since ${confirmedAt.toISOString().slice(0, 10)}`}.
       </p>
+
+      <ProgressSection report={report} />
 
       <section className="rounded-card border border-line bg-surface p-6">
         <h2 className="mb-4 text-xl">Planned spending</h2>
