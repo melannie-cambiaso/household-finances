@@ -111,3 +111,19 @@ export function monthStatement(
 
   return { startBalance, endBalance: balance, rows: inMonth.reverse() };
 }
+
+/**
+ * The balance on `asOf` (inclusive): the opening amount plus every movement
+ * dated after the opening and up to `asOf`. Null when `asOf` is before the
+ * opening date, because the balance was not known yet.
+ */
+export function currentBalance(
+  opening: OpeningBalance,
+  movements: Movement[],
+  asOf: string,
+): number | null {
+  if (asOf < opening.on) return null;
+  return movements
+    .filter((m) => m.date > opening.on && m.date <= asOf)
+    .reduce((sum, m) => sum + m.amount, opening.amount);
+}

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  currentBalance,
   monthStatement,
   validateOpeningBalance,
   type Movement,
@@ -192,5 +193,36 @@ describe("monthStatement", () => {
     );
     assert.equal(result.endBalance, -200);
     assert.equal(result.rows[0].amount, -300);
+  });
+});
+
+describe("currentBalance", () => {
+  const opening = { amount: 1000, on: "2026-09-30" };
+
+  it("is the opening amount plus every movement up to the given date", () => {
+    const movements = [
+      movement("2026-10-02", -300),
+      movement("2026-10-10", 500),
+      movement("2026-10-20", -50),
+    ];
+    assert.equal(currentBalance(opening, movements, "2026-10-24"), 1150);
+  });
+
+  it("counts a movement made on the given date but not a later one", () => {
+    const movements = [movement("2026-10-10", 500), movement("2026-10-11", -50)];
+    assert.equal(currentBalance(opening, movements, "2026-10-10"), 1500);
+  });
+
+  it("ignores movements on or before the opening date", () => {
+    const movements = [movement("2026-09-30", -999), movement("2026-09-01", -999)];
+    assert.equal(currentBalance(opening, movements, "2026-10-24"), 1000);
+  });
+
+  it("has no balance before the opening date", () => {
+    assert.equal(currentBalance(opening, [], "2026-09-29"), null);
+  });
+
+  it("is the opening amount on the opening date itself", () => {
+    assert.equal(currentBalance(opening, [movement("2026-09-30", -5)], "2026-09-30"), 1000);
   });
 });
