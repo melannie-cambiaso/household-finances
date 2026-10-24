@@ -47,10 +47,11 @@ Branch: `feat/categories`
 
 - L1 (user): "listo, ahora si está funcionando, lo que quiero hacer ahora es que las categorías e items del presupuesto se puedan editar porque las que hay actualmente no concuerdan con mi presupuesto real" — right after the Vercel deployment worked.
 - L2 (user): chose "Bloquear y explicar" for deleting items or categories that have history, and "Categorías e ítems" as the scope of this delivery.
+- L3 (user): "ya probé categories y está funcionando al 100%" — manual browser check of `/categories` by the user. No details were given about which steps (add, rename, move, delete, the refused-delete messages) were exercised.
 
 ## Not verified
 
-- The authenticated flow in a browser: add, rename, move and delete categories and items, the refused-delete messages, the duplicate-name messages, and the confirmations. Needs the user's Google session. The services under the screens are integration-tested; the Server Actions, forms, modals and the page are only type-checked, built and checked for the unauthenticated redirect.
+- (Partly resolved) The author tried `/categories` in the browser with their own session and reported that it works 100%. Not confirmed in detail: the refused-delete messages (an item with expenses, a category with items) and the duplicate-name messages.
 - The access check of the six actions on their own: the fake POST used to probe them is stopped by the access proxy before it reaches the action.
 - The household lock that serializes name checks (two people adding the same name at once) is written but no test races two calls.
 - **This feature writes to the real database**, which local development and the Vercel deployment share. Nothing here migrates or rewrites existing rows, but every create, rename, move and delete is immediate.
