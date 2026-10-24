@@ -36,7 +36,7 @@ Branch: `feat/budget`
 - [x] 3. Budget service: save draft lines (household checks, locked months rejected) and confirm — test-first with integration test (S1, S2, S6)
 - [x] 4. Budget service: planned vs. actual per item, category and income source — test-first with integration test (S4, S5)
 - [x] 5. Server Actions and the `/budget` page: create button, draft editor, confirm, sidebar entry
-- [ ] 6. Progress section on `/budget`
+- [x] 6. Progress section on `/budget`
 - [ ] 7. README and close
 
 ## Commits
@@ -48,6 +48,7 @@ Branch: `feat/budget`
 - Task 3: `c245e54` feat: save draft budget lines and confirm a month. RED (confirmBudgetMonth not exported), GREEN 12/12 on the Neon branch copy: replace a draft's lines (blank = line removed, 0 kept); item/source from another household rejected and the original lines survive; same target twice rejected; no budget -> month_not_found; confirm sets status and timestamp, confirming again keeps the timestamp, a confirmed month rejects saves (month_locked) with lines unchanged; confirming a missing or foreign month fails and leaves the other household's draft alone. Full suite 85/85, tsc and lint clean, 0 leftover rows.
 - Task 4: `f486d10` feat: report planned vs actual spending and income for a month. RED twice (buildProgressReport and getBudgetProgress not exported). Pure aggregation unit-tested (category grouping and sums, zero-line vs. unplanned, unknown ids ignored, totals); service GREEN 3/3 integration on the Neon branch copy: sums only the month and household (other month and other household ignored), reimbursement income counted, spending without a line flagged unplanned, month without a budget still reports actuals. Full suite 94/94, tsc and lint clean, 0 leftover rows.
 - Task 5: `fa6327c` feat: add budget page with create, draft editor and confirm. tsc, lint and build PASS (`/budget` is Partial Prerender). Production server: unauthenticated GET and direct POST to `/budget` redirect to `/login`. The three Server Actions, the editor and the page are only type-checked, built and redirect-checked, not exercised with a session. Create and confirm are plain form actions that return nothing: a failure is logged and the page simply re-renders.
+- Task 6: `65b267f` feat: show planned vs actual progress on the budget page. `barWidth` added test-first (RED: export missing; GREEN 67/67). The page shows spending by category and item and income by source, with totals, bars, 'not planned' tags and an over-spending warning, for draft and confirmed months. tsc, lint and build PASS; unauthenticated GET and POST to `/budget` still redirect to `/login`. The rendering itself (layout, bars, wording) is not exercised with a session.
 
 ## Log
 
