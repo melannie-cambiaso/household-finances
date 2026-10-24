@@ -32,7 +32,7 @@ Branch: `feat/categories`
 - [x] 2. Category service: list with items, create, rename, delete with usage rule — test-first with integration test (S1, S6)
 - [x] 3. Item service: create, update (rename, percentage, move), delete with usage rule — test-first with integration test (S3, S4, S6)
 - [x] 4. Server Actions and the `/categories` page with a sidebar entry
-- [ ] 5. README and close
+- [x] 5. README and close
 
 ## Commits
 
@@ -46,3 +46,12 @@ Branch: `feat/categories`
 
 - L1 (user): "listo, ahora si está funcionando, lo que quiero hacer ahora es que las categorías e items del presupuesto se puedan editar porque las que hay actualmente no concuerdan con mi presupuesto real" — right after the Vercel deployment worked.
 - L2 (user): chose "Bloquear y explicar" for deleting items or categories that have history, and "Categorías e ítems" as the scope of this delivery.
+
+## Not verified
+
+- The authenticated flow in a browser: add, rename, move and delete categories and items, the refused-delete messages, the duplicate-name messages, and the confirmations. Needs the user's Google session. The services under the screens are integration-tested; the Server Actions, forms, modals and the page are only type-checked, built and checked for the unauthenticated redirect.
+- The access check of the six actions on their own: the fake POST used to probe them is stopped by the access proxy before it reaches the action.
+- The household lock that serializes name checks (two people adding the same name at once) is written but no test races two calls.
+- **This feature writes to the real database**, which local development and the Vercel deployment share. Nothing here migrates or rewrites existing rows, but every create, rename, move and delete is immediate.
+- A delete that fails for a database error shows a generic message.
+- The integration tests ran against a Neon branch copy, not a local Postgres.
