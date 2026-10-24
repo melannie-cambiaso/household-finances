@@ -37,7 +37,7 @@ Branch: `feat/budget`
 - [x] 4. Budget service: planned vs. actual per item, category and income source — test-first with integration test (S4, S5)
 - [x] 5. Server Actions and the `/budget` page: create button, draft editor, confirm, sidebar entry
 - [x] 6. Progress section on `/budget`
-- [ ] 7. README and close
+- [x] 7. README and close
 
 ## Commits
 
@@ -55,7 +55,11 @@ Branch: `feat/budget`
 - L1 (user): "Arranquemos con el presupuesto mensual" — the next feature after incomes; earlier described by the assistant as "copiar el mes anterior como borrador, confirmarlo para bloquearlo y ver el progreso contra lo presupuestado".
 - L2 (user): chose "Presupuesto + progreso" as the scope of the first delivery (page `/budget`: create or copy the month, edit draft amounts, confirm to lock, planned vs. actual by item and category for expenses and by source for incomes).
 
+
 ## Not verified
 
+- The authenticated flow in a browser: create a month, edit and save the draft, confirm it, read the progress section. Needs the user's Google session. The three Server Actions, the editor, the page and the progress section are only type-checked, built and checked for the unauthenticated redirect; the services under them are integration-tested.
 - Concurrency of `saveBudgetLines` vs. `confirmBudgetMonth` (the `FOR UPDATE` on the month row): written to stop a save slipping in after a confirmation, but no test races the two calls.
 - Two simultaneous `createBudgetMonth` calls (the `ON CONFLICT DO NOTHING` path): reasoned, not raced.
+- Create and confirm are form actions that return nothing, so a failure is only logged and shown as an unchanged page.
+- The integration tests ran against a Neon branch copy, not a local Postgres.
