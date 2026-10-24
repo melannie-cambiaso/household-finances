@@ -46,10 +46,11 @@ Branch: `feat/edit-delete`
 
 - L1 (user): "hagamos eso: editar y borrar gastos e ingresos" — after the assistant recommended it as the next feature because today a typo cannot be corrected.
 - L2 (user): chose "Desvincular y conservar" for deleting an expense that has linked reimbursement incomes.
+- L3 (user): "editar y eliminar funcionan bien para expenses e income" — manual browser check by the user of editing and deleting both expenses and incomes. No details were given about the settled-expense selector, the error messages or the delete confirmation.
 
 ## Not verified
 
-- The authenticated flow in a browser: open Edit pre-filled, save a change, see the error messages, delete with the confirmation, and edit an income whose linked expense is already settled. Needs the user's Google session. The services under the screens are integration-tested; the Server Actions, forms, modals and pages are only type-checked, built and checked for the unauthenticated redirect.
+- (Partly resolved) The author tried editing and deleting expenses and incomes in the browser with their own session and reported that it works. Not confirmed in detail: editing an income whose linked expense is already settled, the error messages, and the delete confirmation wording.
 - The access check of `updateExpenseAction`, `deleteExpenseAction`, `updateIncomeAction` and `deleteIncomeAction` on their own: the fake POST used to probe them is stopped by the access proxy before it reaches the action.
 - Delete failures are only logged, and the page shows no message.
 - Concurrent edits of the same record (two people saving the same expense at once): the last save wins, and the row lock only serializes them.
