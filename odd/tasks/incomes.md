@@ -39,7 +39,13 @@ Branch: `feat/incomes`
 - Task 1: `ee4e4d4` feat: add income validation and pending reimbursement helpers. RED (module not found), GREEN 43/43 (8 new), tsc and lint clean.
 - Task 2: `c3d2f77` feat: add income service with household isolation. RED (module not found), GREEN 9/9 on a Neon branch copy with both migrations (`TEST_DATABASE_URL`): own-household insert, linked reimbursement, source/account/expense from another household rejected with no row inserted, non-reimbursement source and non-reimbursable expense rejected, month list scoped and newest first, pending list across months (partial, settled and over-paid handled). Cleanup verified: row counts identical before and after, 0 leftover test households. Full suite 58/58, tsc and lint clean.
 - Task 3: `8c8104a` feat: add incomes page with form, month list and pending reimbursements. tsc, lint, 58 tests and build PASS (`/incomes` is Partial Prerender). Production server: unauthenticated GET and direct POST to `/incomes` redirect to `/login`. The action, form and page are only type-checked, built and redirect-checked, not exercised with a session.
+- Task 4: `839ef15` docs: document the incomes page and pending reimbursements.
 
 ## Log
 
 - L1 (user): "si, arranquemos con eso" — after the assistant recommended "ingresos y reembolsos" as the next feature (register incomes incl. Friday income, link a reimbursement income to an expense, pending-reimbursement view).
+
+## Not verified
+
+- The authenticated flow in a browser (open the dialog, pick a reimbursement source and see the account preselected and the "Covers expense" field appear, submit, see the row and the pending section update): needs the user's Google session. Service logic is integration-tested; the Server Action, the form and the page are only type-checked, built and checked for the unauthenticated redirect.
+- The integration tests ran against a Neon branch copy, not a local Postgres.
