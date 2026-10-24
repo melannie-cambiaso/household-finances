@@ -26,7 +26,7 @@ Branch: `refactor/unify-modals`
 - T2 (S3-S5): expenses: the form closes the modal itself, the page uses `Modal`, `expense-dialog.tsx` is deleted. Route: inline. Done, commit 727013f: ExpenseForm closes the modal with useModalClose, the page renders Modal and ExpenseForm in both places (add and edit), expense-dialog.tsx deleted; tsc and lint clean, no reference left.
 - T3 (S3-S5): incomes, same. Route: inline. Done, commit 8afb110: IncomeForm closes the modal with useModalClose, the page renders Modal and IncomeForm in both places, income-dialog.tsx deleted; tsc and lint clean, no reference left.
 - T4 (S3-S5): transfers, same. Route: inline. Done, commit e64d2b3: TransferForm closes the modal with useModalClose, the page renders Modal and TransferForm in both places, transfer-dialog.tsx deleted; tsc and lint clean, no reference left.
-- T5: independent verification by reading, build, close with a "Not verified" list. Route: inline plus one `gentle-ai-verify`. Commit: pending.
+- T5: independent verification by reading, build, close with a "Not verified" list. Route: inline plus one `gentle-ai-verify`. Done in the docs commit below: tsc, lint, build and the 113 unit tests pass; an unauthenticated GET of the five pages with modals answers 307 to /login; the independent verifier compared the old dialogs in git history with the new Modal and found S3, S4 and S5 preserved, with no behavior difference.
 
 ## Commits
 
@@ -41,4 +41,6 @@ Branch: `refactor/unify-modals`
 
 ## Not verified
 
-(to fill when the feature closes)
+- Nothing was opened in a browser with a session. Only a browser confirms: that a click on the backdrop closes, that dragging a text selection out of the modal and releasing over the backdrop does not, that Esc closes, focus trapping, and that a form still closes by itself after a successful save on expenses, incomes and transfers.
+- The structure changed in one detail the verifier flagged: the remount key now sits on a wrapper div around the form instead of on the form itself. React still remounts the whole subtree on every open, so a stale "saved" message or old errors should not appear, but this was not seen.
+- No native review: assessed as medium risk, review not due.
