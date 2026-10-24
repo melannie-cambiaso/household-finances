@@ -2,7 +2,7 @@ import { and, desc, eq, inArray, lt } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 import * as schema from "../db/schema.ts";
-import { perFridayPlanned } from "./budget.ts";
+import { perFridayPlanned, type BudgetLineInput } from "./budget.ts";
 import { isValidDate } from "./expenses.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway
@@ -154,4 +154,141 @@ export async function getBudgetMonth(
     copiedFromId: budget.copiedFromId,
     lines,
   };
+}
+
+export type SaveBudgetLinesResult =
+  | { ok: true }
+  | {
+      ok: false;
+      error:
+        | "month_not_found"
+        | "month_locked"
+        | "target_not_found"
+        | "duplicate_target";
+    };
+
+/**
+ * Replaces the lines of a draft budget with the submitted ones, all or nothing.
+ * Every item and income source must belong to the household. A confirmed month
+ * is locked: the service refuses, whatever the UI shows. The month row is locked
+ * for the duration, so a save cannot slip in after a concurrent confirmation.
+ */
+export async function saveBudgetLines(
+  db: Db,
+  householdId: string,
+  month: string,
+  lines: BudgetLineInput[],
+): Promise<SaveBudgetLinesResult> {
+  const keys = lines.map((line) => `${line.kind}:${line.id}`);
+  if (new Set(keys).size !== keys.length) {
+    return { ok: false, error: "duplicate_target" };
+  }
+  const itemIds = lines.filter((l) => l.kind === "item").map((l) => l.id);
+  const sourceIds = lines.filter((l) => l.kind === "source").map((l) => l.id);
+
+  return db.transaction(async (tx) => {
+    const [budget] = await tx
+      .select({
+        id: schema.budgetMonths.id,
+        status: schema.budgetMonths.status,
+      })
+      .from(schema.budgetMonths)
+      .where(
+        and(
+          eq(schema.budgetMonths.householdId, householdId),
+          eq(schema.budgetMonths.month, month),
+        ),
+      )
+      .for("update");
+    if (!budget) return { ok: false as const, error: "month_not_found" as const };
+    if (budget.status === "confirmed") {
+      return { ok: false as const, error: "month_locked" as const };
+    }
+
+    if (itemIds.length > 0) {
+      const owned = await tx
+        .select({ id: schema.items.id })
+        .from(schema.items)
+        .innerJoin(
+          schema.categories,
+          eq(schema.items.categoryId, schema.categories.id),
+        )
+        .where(
+          and(
+            inArray(schema.items.id, itemIds),
+            eq(schema.categories.householdId, householdId),
+          ),
+        );
+      if (owned.length !== itemIds.length) {
+        return { ok: false as const, error: "target_not_found" as const };
+      }
+    }
+    if (sourceIds.length > 0) {
+      const owned = await tx
+        .select({ id: schema.incomeSources.id })
+        .from(schema.incomeSources)
+        .where(
+          and(
+            inArray(schema.incomeSources.id, sourceIds),
+            eq(schema.incomeSources.householdId, householdId),
+          ),
+        );
+      if (owned.length !== sourceIds.length) {
+        return { ok: false as const, error: "target_not_found" as const };
+      }
+    }
+
+    await tx
+      .delete(schema.budgetLines)
+      .where(eq(schema.budgetLines.budgetMonthId, budget.id));
+    if (lines.length > 0) {
+      await tx.insert(schema.budgetLines).values(
+        lines.map((line) => ({
+          budgetMonthId: budget.id,
+          itemId: line.kind === "item" ? line.id : null,
+          incomeSourceId: line.kind === "source" ? line.id : null,
+          plannedAmount: line.plannedAmount,
+        })),
+      );
+    }
+    return { ok: true as const };
+  });
+}
+
+export type ConfirmBudgetMonthResult =
+  | { ok: true }
+  | { ok: false; error: "month_not_found" };
+
+/**
+ * Locks a draft budget. One-way: there is no reopening. Confirming a month
+ * that is already confirmed succeeds and keeps the original timestamp.
+ */
+export async function confirmBudgetMonth(
+  db: Db,
+  householdId: string,
+  month: string,
+): Promise<ConfirmBudgetMonthResult> {
+  const confirmed = await db
+    .update(schema.budgetMonths)
+    .set({ status: "confirmed", confirmedAt: new Date() })
+    .where(
+      and(
+        eq(schema.budgetMonths.householdId, householdId),
+        eq(schema.budgetMonths.month, month),
+        eq(schema.budgetMonths.status, "draft"),
+      ),
+    )
+    .returning({ id: schema.budgetMonths.id });
+  if (confirmed.length > 0) return { ok: true };
+
+  const [existing] = await db
+    .select({ id: schema.budgetMonths.id })
+    .from(schema.budgetMonths)
+    .where(
+      and(
+        eq(schema.budgetMonths.householdId, householdId),
+        eq(schema.budgetMonths.month, month),
+      ),
+    );
+  return existing ? { ok: true } : { ok: false, error: "month_not_found" };
 }

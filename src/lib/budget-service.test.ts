@@ -7,13 +7,18 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import * as schema from "../db/schema.ts";
-import { createBudgetMonth, getBudgetMonth } from "./budget-service.ts";
+import {
+  confirmBudgetMonth,
+  createBudgetMonth,
+  getBudgetMonth,
+  saveBudgetLines,
+} from "./budget-service.ts";
 
 // Integration test: needs a Postgres with the migrations applied.
 // Run with TEST_DATABASE_URL pointing at a throwaway database; skipped otherwise.
 const url = process.env.TEST_DATABASE_URL;
 
-describe("budget service: create and read", { skip: !url }, () => {
+describe("budget service", { skip: !url }, () => {
   const sql = postgres(url ?? "postgres://unused", { prepare: false });
   const db = drizzle(sql, { schema });
 
@@ -236,5 +241,129 @@ describe("budget service: create and read", { skip: !url }, () => {
     assert.deepEqual(result, { ok: false, error: "invalid_month" });
     assert.equal(await getBudgetMonth(db, seed.householdId, "2026-10-15"), null);
     assert.equal(await getBudgetMonth(db, seed.householdId, "2026-10-01"), null);
+  });
+
+  describe("save lines and confirm", () => {
+    const amounts = (
+      lines: { itemId: string | null; incomeSourceId: string | null; plannedAmount: number }[] = [],
+    ) => planned(lines);
+
+    it("replaces the lines of a draft with the submitted ones", async () => {
+      const seed = await seedHousehold("save");
+      await insertMonth(
+        seed,
+        "2026-10-01",
+        [
+          { itemId: seed.rentId, plannedAmount: 500_000 },
+          { itemId: seed.foodId, plannedAmount: 80_000 },
+        ],
+        "draft",
+      );
+
+      const result = await saveBudgetLines(db, seed.householdId, "2026-10-01", [
+        { kind: "item", id: seed.rentId, plannedAmount: 520_000 },
+        { kind: "source", id: seed.salaryId, plannedAmount: 1_600_000 },
+        { kind: "source", id: seed.refundId, plannedAmount: 0 },
+      ]);
+      assert.deepEqual(result, { ok: true });
+
+      const budget = await getBudgetMonth(db, seed.householdId, "2026-10-01");
+      // Food was not submitted (blank), so its line is gone.
+      assert.deepEqual(
+        amounts(budget?.lines),
+        amounts([
+          { itemId: seed.rentId, incomeSourceId: null, plannedAmount: 520_000 },
+          { itemId: null, incomeSourceId: seed.salaryId, plannedAmount: 1_600_000 },
+          { itemId: null, incomeSourceId: seed.refundId, plannedAmount: 0 },
+        ]),
+      );
+      assert.equal(budget?.status, "draft");
+    });
+
+    it("rejects a source or item from another household and changes nothing", async () => {
+      const mine = await seedHousehold("mine-save");
+      const other = await seedHousehold("other-save");
+      await insertMonth(mine, "2026-10-01", [{ itemId: mine.rentId, plannedAmount: 500_000 }], "draft");
+
+      const badItem = await saveBudgetLines(db, mine.householdId, "2026-10-01", [
+        { kind: "item", id: mine.foodId, plannedAmount: 1 },
+        { kind: "item", id: other.rentId, plannedAmount: 2 },
+      ]);
+      assert.deepEqual(badItem, { ok: false, error: "target_not_found" });
+
+      const badSource = await saveBudgetLines(db, mine.householdId, "2026-10-01", [
+        { kind: "source", id: other.salaryId, plannedAmount: 3 },
+      ]);
+      assert.deepEqual(badSource, { ok: false, error: "target_not_found" });
+
+      const budget = await getBudgetMonth(db, mine.householdId, "2026-10-01");
+      assert.deepEqual(
+        budget?.lines.map((l) => l.plannedAmount),
+        [500_000],
+        "the original lines survive a rejected save",
+      );
+    });
+
+    it("rejects the same target submitted twice and changes nothing", async () => {
+      const seed = await seedHousehold("dup");
+      await insertMonth(seed, "2026-10-01", [{ itemId: seed.rentId, plannedAmount: 500_000 }], "draft");
+
+      const result = await saveBudgetLines(db, seed.householdId, "2026-10-01", [
+        { kind: "item", id: seed.foodId, plannedAmount: 1 },
+        { kind: "item", id: seed.foodId, plannedAmount: 2 },
+      ]);
+      assert.deepEqual(result, { ok: false, error: "duplicate_target" });
+      const budget = await getBudgetMonth(db, seed.householdId, "2026-10-01");
+      assert.deepEqual(
+        budget?.lines.map((l) => l.plannedAmount),
+        [500_000],
+      );
+    });
+
+    it("rejects saving into a month that has no budget", async () => {
+      const seed = await seedHousehold("nomonth");
+      const result = await saveBudgetLines(db, seed.householdId, "2026-10-01", [
+        { kind: "item", id: seed.rentId, plannedAmount: 1 },
+      ]);
+      assert.deepEqual(result, { ok: false, error: "month_not_found" });
+      assert.equal(await getBudgetMonth(db, seed.householdId, "2026-10-01"), null);
+    });
+
+    it("confirms a draft once, and a confirmed month rejects further saves", async () => {
+      const seed = await seedHousehold("confirm");
+      await insertMonth(seed, "2026-10-01", [{ itemId: seed.rentId, plannedAmount: 500_000 }], "draft");
+
+      const confirmed = await confirmBudgetMonth(db, seed.householdId, "2026-10-01");
+      assert.deepEqual(confirmed, { ok: true });
+      const afterConfirm = await getBudgetMonth(db, seed.householdId, "2026-10-01");
+      assert.equal(afterConfirm?.status, "confirmed");
+      assert.ok(afterConfirm?.confirmedAt instanceof Date);
+
+      // Confirming again is harmless and does not move the timestamp.
+      await confirmBudgetMonth(db, seed.householdId, "2026-10-01");
+      const again = await getBudgetMonth(db, seed.householdId, "2026-10-01");
+      assert.equal(again?.confirmedAt?.getTime(), afterConfirm?.confirmedAt?.getTime());
+
+      const save = await saveBudgetLines(db, seed.householdId, "2026-10-01", [
+        { kind: "item", id: seed.foodId, plannedAmount: 9 },
+      ]);
+      assert.deepEqual(save, { ok: false, error: "month_locked" });
+      assert.deepEqual(
+        again?.lines.map((l) => l.plannedAmount),
+        [500_000],
+      );
+    });
+
+    it("cannot confirm a month that has no budget or belongs to another household", async () => {
+      const mine = await seedHousehold("mine-confirm");
+      const other = await seedHousehold("other-confirm");
+      await insertMonth(other, "2026-10-01", [], "draft");
+
+      const none = await confirmBudgetMonth(db, mine.householdId, "2026-10-01");
+      assert.deepEqual(none, { ok: false, error: "month_not_found" });
+
+      const otherBudget = await getBudgetMonth(db, other.householdId, "2026-10-01");
+      assert.equal(otherBudget?.status, "draft");
+    });
   });
 });
