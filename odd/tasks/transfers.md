@@ -53,11 +53,12 @@ Branch: `feat/transfers`
 - L1 (user): "haz la limpieza y sigamos con la siguiente feature" — after the assistant listed "transferencias y deuda de ahorros" as what remained of the original idea.
 - L2 (user): chose "Transferencias + deuda" as the scope: the `/transfers` page with register, edit and delete, and the debt visible on the dashboard and on that page whenever it is above zero.
 - L3 (user): "comprabado que transferencias están funcionando correctamente en el navegador" — manual browser check of the transfers by the user. No details were given about the savings debt card, the error messages or the delete confirmation.
+- L4 (user): "borré la transferencia y ahora se ve la tarjeta" — after reporting that the savings debt card did not show up. The assistant read the real database (read-only: accounts, spending per account, transfer count, debt): 12.500 spent from Savings and 60.000 repaid into it gave a debt of -47.500, so the card was correctly hidden; deleting a transfer made the debt positive and the card appeared.
 
 ## Not verified
 
 - (Partly resolved) The author tried the transfers in the browser with their own session and reported that they work correctly. Not confirmed in detail: the savings debt appearing on `/transfers` and on the dashboard once something is spent from a savings account, the error messages, and the delete confirmation wording.
-- The debt card was never seen: with the real data the debt is 0 (the only expense came from Salary), so its visible branch is covered by the debt query tests but not by looking at the screen.
+- (Resolved) The debt card was first hidden because the real data had a negative debt (-47.500, over-repaid); after the author deleted a transfer the debt became positive and the card appeared, which also showed that deleting a transfer recalculates the debt.
 - The access check of `createTransferAction`, `updateTransferAction` and `deleteTransferAction` on their own: the fake POST used to probe them is stopped by the access proxy before it reaches the action.
 - A failed delete is only logged, and the page shows no message.
 - A repayment that does not end in a savings account cannot be created, but one inserted straight into the database exists in the tests only to prove that the debt query ignores it.
