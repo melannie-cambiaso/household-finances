@@ -1,0 +1,47 @@
+name: CI
+
+# Required by the protection rule of `main`: the job names below are the check
+# names it waits for. Renaming a job means updating that rule.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # A new push to a pull request makes the older run useless; never cancel the
+  # run of a merge into main.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # The pnpm version comes from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      # The integration tests skip themselves without TEST_DATABASE_URL; they run
+      # in the "Tests (Postgres)" job.
+      - name: Unit tests
+        run: pnpm test
