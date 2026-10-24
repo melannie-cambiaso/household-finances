@@ -12,7 +12,7 @@ import {
   todayIn,
 } from "@/lib/expenses";
 import { getSavingsDebt, listTransfers } from "@/lib/transfer-service";
-import { transferKindLabel } from "@/lib/transfers";
+import { debtStanding, transferKindLabel } from "@/lib/transfers";
 import { getAllowedSession } from "@/lib/session";
 
 import { DeleteTransferButton } from "./delete-transfer-button";
@@ -66,6 +66,7 @@ async function TransfersContent({
     listTransfers(db, householdId, month),
     getSavingsDebt(db, householdId),
   ]);
+  const standing = debtStanding(debt);
 
   return (
     <>
@@ -94,8 +95,25 @@ async function TransfersContent({
       </header>
 
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-8">
-        {/* Always visible while above zero, whatever month is shown. */}
-        {debt > 0 && (
+        {/* Always visible while it is not zero, whatever month is shown. */}
+        {standing.kind === "credit" && (
+          <section
+            role="status"
+            className="rounded-card border border-income bg-surface p-6"
+          >
+            <h2 className="mb-1 text-xl">Savings credit</h2>
+            <p>
+              <span className="font-numeric text-3xl font-bold text-income">
+                {formatClp(standing.amount)}
+              </span>
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              More was repaid into savings accounts than was ever spent from them.
+              Well done!
+            </p>
+          </section>
+        )}
+        {standing.kind === "debt" && (
           <section
             role="status"
             className="rounded-card border border-expense bg-surface p-6"
@@ -103,7 +121,7 @@ async function TransfersContent({
             <h2 className="mb-1 text-xl">Savings debt</h2>
             <p>
               <span className="font-numeric text-3xl font-bold text-expense">
-                {formatClp(debt)}
+                {formatClp(standing.amount)}
               </span>
             </p>
             <p className="mt-1 text-sm text-muted">

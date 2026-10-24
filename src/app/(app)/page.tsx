@@ -13,6 +13,7 @@ import {
 } from "@/lib/expenses";
 import { listPendingReimbursements } from "@/lib/income-service";
 import { getSavingsDebt } from "@/lib/transfer-service";
+import { debtStanding } from "@/lib/transfers";
 import { getAllowedSession } from "@/lib/session";
 
 import { Bar, Figures } from "./budget/progress-section";
@@ -72,6 +73,7 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
     listPendingReimbursements(db, householdId),
     getSavingsDebt(db, householdId),
   ]);
+  const standing = debtStanding(debt);
 
   const income = report.incomeTotal;
   const spending = report.expenseTotal;
@@ -108,8 +110,24 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
       </header>
 
       <main className="mx-auto grid w-full max-w-3xl gap-6 p-8 md:grid-cols-2">
-        {/* Always visible while above zero, whatever month is shown. */}
-        {debt > 0 && (
+        {/* Always visible while it is not zero, whatever month is shown. */}
+        {standing.kind === "credit" && (
+          <section
+            role="status"
+            className="rounded-card border border-income bg-surface p-6 md:col-span-2"
+          >
+            <h2 className="mb-1 text-xl">Savings credit</h2>
+            <p>
+              <span className="font-numeric text-3xl font-bold text-income">
+                {formatClp(standing.amount)}
+              </span>{" "}
+              <span className="text-muted">
+                more repaid to savings than was spent from them. Well done!
+              </span>
+            </p>
+          </section>
+        )}
+        {standing.kind === "debt" && (
           <section
             role="status"
             className="rounded-card border border-expense bg-surface p-6 md:col-span-2"
@@ -117,7 +135,7 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
             <h2 className="mb-1 text-xl">Savings debt</h2>
             <p>
               <span className="font-numeric text-3xl font-bold text-expense">
-                {formatClp(debt)}
+                {formatClp(standing.amount)}
               </span>{" "}
               <span className="text-muted">still to repay to savings</span>
             </p>

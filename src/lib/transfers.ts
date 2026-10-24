@@ -72,3 +72,18 @@ export function validateTransferInput(
     value: { fromAccountId, toAccountId, amount, madeOn, kind },
   };
 }
+
+export type DebtStanding =
+  | { kind: "debt"; amount: number }
+  | { kind: "credit"; amount: number }
+  | { kind: "even" };
+
+/**
+ * What to show for the savings debt. It is negative when more was repaid into
+ * savings than was spent from them: that is a credit, shown as a positive amount.
+ */
+export function debtStanding(debt: number): DebtStanding {
+  if (debt > 0) return { kind: "debt", amount: debt };
+  if (debt < 0) return { kind: "credit", amount: -debt };
+  return { kind: "even" };
+}
