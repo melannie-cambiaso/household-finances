@@ -142,15 +142,25 @@ describe("monthStatement", () => {
     assert.equal(result.rows.length, 1);
   });
 
-  it("ignores movements on or before the opening date", () => {
+  it("ignores movements before the opening date", () => {
     const result = monthStatement(
       opening,
-      [movement("2026-09-30", -999), movement("2026-09-01", -999)],
+      [movement("2026-09-29", -999), movement("2026-09-01", -999)],
       "2026-10-01",
     );
     assert.equal(result.startBalance, 1000);
     assert.equal(result.endBalance, 1000);
     assert.deepEqual(result.rows, []);
+  });
+
+  it("counts the movements made on the opening date", () => {
+    const result = monthStatement(
+      opening,
+      [movement("2026-09-30", -300)],
+      "2026-10-01",
+    );
+    assert.equal(result.startBalance, 700);
+    assert.equal(result.endBalance, 700);
   });
 
   it("has no starting balance when the opening falls inside the month", () => {
@@ -171,7 +181,8 @@ describe("monthStatement", () => {
       "2026-10-01",
     );
     assert.equal(result.startBalance, 1000);
-    assert.equal(result.endBalance, 900);
+    assert.equal(result.endBalance, -99);
+    assert.equal(result.rows.length, 2);
   });
 
   it("has no balance for a month entirely before the opening", () => {
@@ -213,8 +224,8 @@ describe("currentBalance", () => {
     assert.equal(currentBalance(opening, movements, "2026-10-10"), 1500);
   });
 
-  it("ignores movements on or before the opening date", () => {
-    const movements = [movement("2026-09-30", -999), movement("2026-09-01", -999)];
+  it("ignores movements before the opening date", () => {
+    const movements = [movement("2026-09-29", -999), movement("2026-09-01", -999)];
     assert.equal(currentBalance(opening, movements, "2026-10-24"), 1000);
   });
 
@@ -222,7 +233,12 @@ describe("currentBalance", () => {
     assert.equal(currentBalance(opening, [], "2026-09-29"), null);
   });
 
-  it("is the opening amount on the opening date itself", () => {
-    assert.equal(currentBalance(opening, [movement("2026-09-30", -5)], "2026-09-30"), 1000);
+  it("is the opening amount on the opening date when nothing moved that day", () => {
+    assert.equal(currentBalance(opening, [], "2026-09-30"), 1000);
+  });
+
+  it("counts the movements made on the opening date", () => {
+    assert.equal(currentBalance(opening, [movement("2026-09-30", -5)], "2026-09-30"), 995);
+    assert.equal(currentBalance(opening, [movement("2026-09-30", -5)], "2026-10-24"), 995);
   });
 });

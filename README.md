@@ -158,10 +158,10 @@ The first deployment failed at the install step with `ERR_PNPM_IGNORED_BUILDS`: 
 
 `/savings` shows how much the household has saved and how it moved. It lists every savings account with its balance today, the total on top, and the movements of one calendar month (`?month=YYYY-MM`, current month by default) with the balance at the start and at the end of that month.
 
-The page needs a starting point. For each savings account, use **Set opening balance** to type how much was saved on a given day (zero is allowed; the day cannot be in the future). Until then the account shows no balance.
+The page needs a starting point. For each savings account, use **Set opening balance** to type how much was saved at the start of a given day (zero is allowed; the day cannot be in the future). Until then the account shows no balance.
 
 - **The balance is never stored.** It is computed on every visit: the opening amount, plus incomes received into the account, plus transfers into it, minus transfers out of it, minus expenses paid from it, up to today. Only the opening amount and its date are stored, in two optional columns of `accounts`.
-- **Only movements after the opening date count.** A movement made on the opening date itself is assumed to be inside the typed amount. Movements dated after today are not counted yet.
+- **Movements from the opening day on count.** The amount is what there was at the start of that day, so a movement made on that day is added to it and one dated earlier is ignored. Use the figure from before you registered that day's movements, or they would be counted twice. Movements dated after today are not counted yet.
 - **Several savings accounts** each have their own balance and the page shows their sum. A transfer between two of them changes neither total.
 - **The savings debt is a different number.** It still lives on `/transfers` and the dashboard and counts only what was spent from savings minus the repayments. Changing the opening balance never changes it.
 - Changing the opening balance later moves every balance by the difference. There is no history of past values.

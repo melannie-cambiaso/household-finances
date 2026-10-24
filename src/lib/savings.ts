@@ -11,7 +11,7 @@ import {
 export type OpeningBalance = {
   /** Whole CLP saved on the opening date. May be zero. */
   amount: number;
-  /** Date of the amount (YYYY-MM-DD). Only movements after it count. */
+  /** Day the amount was counted at the start of (YYYY-MM-DD). Movements from that day on count. */
   on: string;
 };
 
@@ -72,9 +72,9 @@ export type MonthStatement = {
 
 /**
  * The balance and movements of one calendar month. `month` is a first-of-month
- * date. Movements dated on or before the opening date are ignored: the opening
- * amount is assumed to already include them. Movements on the same day keep the
- * order they were given in.
+ * date. The opening amount is what there was at the start of the opening day,
+ * so movements dated before that day are ignored and the ones on that day
+ * count. Movements on the same day keep the order they were given in.
  */
 export function monthStatement(
   opening: OpeningBalance,
@@ -90,7 +90,7 @@ export function monthStatement(
 
   // Array.prototype.sort is stable, so equal dates keep their given order.
   const counted = movements
-    .filter((m) => m.date > opening.on && m.date < nextMonthStart)
+    .filter((m) => m.date >= opening.on && m.date < nextMonthStart)
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
   let balance = opening.amount;
@@ -114,8 +114,8 @@ export function monthStatement(
 
 /**
  * The balance on `asOf` (inclusive): the opening amount plus every movement
- * dated after the opening and up to `asOf`. Null when `asOf` is before the
- * opening date, because the balance was not known yet.
+ * dated from the opening day on and up to `asOf`. Null when `asOf` is before
+ * the opening date, because the balance was not known yet.
  */
 export function currentBalance(
   opening: OpeningBalance,
@@ -124,6 +124,6 @@ export function currentBalance(
 ): number | null {
   if (asOf < opening.on) return null;
   return movements
-    .filter((m) => m.date > opening.on && m.date <= asOf)
+    .filter((m) => m.date >= opening.on && m.date <= asOf)
     .reduce((sum, m) => sum + m.amount, opening.amount);
 }
