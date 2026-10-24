@@ -59,8 +59,9 @@ Branch: `feat/budget`
 
 ## Not verified
 
-- The authenticated flow in a browser: create a month, edit and save the draft, confirm it, read the progress section. Needs the user's Google session. The three Server Actions, the editor, the page and the progress section are only type-checked, built and checked for the unauthenticated redirect; the services under them are integration-tested.
+- (Resolved) The author tried `/budget` in the browser with their own session and reported that it works ("ya lo probé y funciona perfecto"). The notes below remain unverified.
 - Concurrency of `saveBudgetLines` vs. `confirmBudgetMonth` (the `FOR UPDATE` on the month row): written to stop a save slipping in after a confirmation, but no test races the two calls.
 - Two simultaneous `createBudgetMonth` calls (the `ON CONFLICT DO NOTHING` path): reasoned, not raced.
 - Create and confirm are form actions that return nothing, so a failure is only logged and shown as an unchanged page.
 - The integration tests ran against a Neon branch copy, not a local Postgres.
+- L3 (user): "ya lo probé y funciona perfecto" — manual browser check of `/budget` done by the user; no details given on which steps (create, edit, confirm, progress) were exercised.
