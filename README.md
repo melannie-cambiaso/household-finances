@@ -140,4 +140,6 @@ The database migrations are not run by the deployment. Apply them with `pnpm db:
 
 ### The pnpm version
 
-`package.json` pins `pnpm@12.15.0`, which Vercel does not support yet (see vercel/vercel issues 17434 and 17560). Without Corepack enabled, Vercel ignores that field and installs with its own pnpm from the lockfile version, which is expected to work, but this has not been confirmed with a real build. Do not set `ENABLE_EXPERIMENTAL_COREPACK`: it would force pnpm 12 and fail. If the install step fails, read the build log first; the options are to override the Install Command in the project settings or to pin an older pnpm in `package.json`.
+`package.json` pins `pnpm@12.15.0`, which Vercel does not officially support yet (see vercel/vercel issues 17434 and 17560). Do not set `ENABLE_EXPERIMENTAL_COREPACK`: it would force pnpm 12 and is known to fail.
+
+The first deployment failed at the install step with `ERR_PNPM_IGNORED_BUILDS`: a recent pnpm refuses to finish while a dependency with an install script has no explicit decision, and CI treats that as an error (locally it only warns, because the packages are installed anyway). `pnpm-workspace.yaml` now says `esbuild: false`, meaning its install script is reviewed and not run. esbuild works without it and is only used by `drizzle-kit`, a development tool. If a new dependency with an install script is added, the same error comes back until it is listed under `allowBuilds`; reproduce it with `CI=true pnpm install --frozen-lockfile`.
