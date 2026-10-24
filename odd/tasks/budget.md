@@ -33,7 +33,7 @@ Branch: `feat/budget`
 
 - [x] 1. Pure logic (`src/lib/budget.ts`): Fridays in a month, planned amount of a source, planned-amount input validation, progress math — test-first (S3, S4, S5, S7)
 - [x] 2. Budget service: create a month's draft by copying the previous month; get a month with its lines — test-first with integration test (S1, S3, S6)
-- [ ] 3. Budget service: save draft lines (household checks, locked months rejected) and confirm — test-first with integration test (S1, S2, S6)
+- [x] 3. Budget service: save draft lines (household checks, locked months rejected) and confirm — test-first with integration test (S1, S2, S6)
 - [ ] 4. Budget service: planned vs. actual per item, category and income source — test-first with integration test (S4, S5)
 - [ ] 5. Server Actions and the `/budget` page: create button, draft editor, confirm, sidebar entry
 - [ ] 6. Progress section on `/budget`
@@ -45,8 +45,14 @@ Branch: `feat/budget`
 - Task 1: `c5a32f5` feat: add budget calendar, form parsing and progress helpers. RED (module not found), then one failing test caused by my own wrong expectation (Feb 2024 has 4 Fridays, not 5; verified against the calendar and replaced with a leap February that has 5 Fridays, 2008), GREEN 57/57, tsc and lint clean.
 - Task 1 verification: independent `gentle-ai-verify` (required because the writer profile was unknown, so the plan raised the tier to high): PASS on S3, S4, S5, S7, no defects. Its only note (S7 coverage was borrowed from the expense tests) was closed in `245549f` test: cover budget form integer limit and zero spellings (58/58). Native review: not due (medium risk, under budget).
 - Task 2: `5b25cb6` feat: add budget service to create a month by copy and read it. RED (module not found), GREEN 6/6 on the Neon branch copy: empty draft without an earlier budget; copy as a draft from a confirmed month with the per-Friday line recomputed (5 Fridays in Oct 2026 -> 4 in Nov, 200.000 not 250.000); most recent earlier month used and later ones ignored; second create returns the existing month without duplicating lines; another household's budget never copied or read; a non-first-day month rejected with nothing inserted. Full suite 79/79, tsc and lint clean, 0 leftover rows.
+- Task 3: `c245e54` feat: save draft budget lines and confirm a month. RED (confirmBudgetMonth not exported), GREEN 12/12 on the Neon branch copy: replace a draft's lines (blank = line removed, 0 kept); item/source from another household rejected and the original lines survive; same target twice rejected; no budget -> month_not_found; confirm sets status and timestamp, confirming again keeps the timestamp, a confirmed month rejects saves (month_locked) with lines unchanged; confirming a missing or foreign month fails and leaves the other household's draft alone. Full suite 85/85, tsc and lint clean, 0 leftover rows.
 
 ## Log
 
 - L1 (user): "Arranquemos con el presupuesto mensual" — the next feature after incomes; earlier described by the assistant as "copiar el mes anterior como borrador, confirmarlo para bloquearlo y ver el progreso contra lo presupuestado".
 - L2 (user): chose "Presupuesto + progreso" as the scope of the first delivery (page `/budget`: create or copy the month, edit draft amounts, confirm to lock, planned vs. actual by item and category for expenses and by source for incomes).
+
+## Not verified
+
+- Concurrency of `saveBudgetLines` vs. `confirmBudgetMonth` (the `FOR UPDATE` on the month row): written to stop a save slipping in after a confirmation, but no test races the two calls.
+- Two simultaneous `createBudgetMonth` calls (the `ON CONFLICT DO NOTHING` path): reasoned, not raced.
