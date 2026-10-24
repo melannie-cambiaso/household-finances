@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, or } from "drizzle-orm";
+import { and, asc, eq, gte, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
@@ -51,14 +51,14 @@ export async function setOpeningBalance(
 }
 
 /**
- * Every movement of one account dated after `after`: incomes into it, transfers
+ * Every movement of one account dated on or after `since`: incomes into it, transfers
  * into and out of it, and expenses paid from it. Signed from the account's side.
  */
 async function loadMovements(
   db: Db,
   householdId: string,
   accountId: string,
-  after: string,
+  since: string,
 ): Promise<Movement[]> {
   const incomes = await db
     .select({
@@ -75,7 +75,7 @@ async function loadMovements(
       and(
         eq(schema.incomes.householdId, householdId),
         eq(schema.incomes.accountId, accountId),
-        gt(schema.incomes.receivedOn, after),
+        gte(schema.incomes.receivedOn, since),
       ),
     )
     .orderBy(asc(schema.incomes.receivedOn), asc(schema.incomes.id));
@@ -96,7 +96,7 @@ async function loadMovements(
     .where(
       and(
         eq(schema.transfers.householdId, householdId),
-        gt(schema.transfers.madeOn, after),
+        gte(schema.transfers.madeOn, since),
         // Either side of the transfer is this account.
         or(
           eq(schema.transfers.fromAccountId, accountId),
@@ -121,7 +121,7 @@ async function loadMovements(
       and(
         eq(schema.expenses.householdId, householdId),
         eq(schema.expenses.accountId, accountId),
-        gt(schema.expenses.spentOn, after),
+        gte(schema.expenses.spentOn, since),
       ),
     )
     .orderBy(asc(schema.expenses.spentOn), asc(schema.expenses.id));

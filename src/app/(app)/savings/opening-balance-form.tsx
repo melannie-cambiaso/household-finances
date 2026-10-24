@@ -41,9 +41,9 @@ export function OpeningBalanceForm({
     <form action={formAction} className="grid gap-3">
       <input type="hidden" name="accountId" value={accountId} />
       <p className="text-sm text-muted">
-        How much was saved on a given day. The balance is this amount plus
-        everything that moved after that day, so pick a day you know the exact
-        figure for.
+        How much was saved at the start of a given day. The balance is this
+        amount plus everything that moved from that day on, that day included,
+        so use the figure from before you registered that day&apos;s movements.
       </p>
       <label className="grid gap-1">
         <span className="text-muted">Amount saved (CLP)</span>
@@ -66,7 +66,7 @@ export function OpeningBalanceForm({
         )}
       </label>
       <label className="grid gap-1">
-        <span className="text-muted">As of</span>
+        <span className="text-muted">At the start of</span>
         <input
           key={typed === null ? "stored-on" : "typed-on"}
           name="on"

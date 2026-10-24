@@ -49,8 +49,8 @@ households 1─* transfers
 | household_id | uuid FK | |
 | name | text | e.g. "Salary", "Savings", "Utilities" |
 | kind | enum | `salary` / `savings` / `utilities` |
-| opening_balance | integer, nullable | Savings accounts only: how much was saved on `opening_balance_on` |
-| opening_balance_on | date, nullable | Date of `opening_balance`; only movements after it count |
+| opening_balance | integer, nullable | Savings accounts only: how much was saved at the start of `opening_balance_on` |
+| opening_balance_on | date, nullable | Day `opening_balance` was counted at the start of; movements from that day on count |
 
 ### categories and items
 Categories group items (Subscriptions → Claude). Spending is always recorded against an **item**; a category total is the sum of its items.
@@ -149,7 +149,7 @@ Month progress, per category: sum over its items
 Income progress:             planned income lines vs sum(incomes.amount) for that budget_month
 Account balance:             sum(incomes) - sum(expenses) +/- transfers, per account
 Savings balance:             opening_balance + incomes in + transfers in - transfers out - expenses,
-                             all dated after opening_balance_on and up to today, per savings account
+                             all dated from opening_balance_on on and up to today, per savings account
 
 Expected reimbursement:      expense.amount * expense.reimbursement_pct / 100
 Pending reimbursement:       expected - sum(incomes.amount WHERE related_expense_id = expense.id)

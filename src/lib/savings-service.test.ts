@@ -233,10 +233,20 @@ describe("savings service", { skip: !url }, () => {
       assert.equal(overview.total, 850_000);
     });
 
-    it("ignores movements on or before the opening date and the other accounts", async () => {
+    it("counts the movements made on the opening date", async () => {
+      const seed = await seedHousehold("ov-openday");
+      await setOpeningBalance(db, seed.householdId, seed.savingsId, OPENING);
+      await spend(seed, seed.savingsId, 5_000, "2026-09-30");
+      await receive(seed, seed.savingsId, 2_000, "2026-09-30");
+
+      const overview = await overviewOf(seed);
+      assert.equal(overview.accounts[0].balance, 997_000);
+    });
+
+    it("ignores movements before the opening date and the other accounts", async () => {
       const seed = await seedHousehold("ov-scope");
       await setOpeningBalance(db, seed.householdId, seed.savingsId, OPENING);
-      await spend(seed, seed.savingsId, 999, "2026-09-30");
+      await spend(seed, seed.savingsId, 999, "2026-09-29");
       await spend(seed, seed.savingsId, 999, "2026-09-02");
       await spend(seed, seed.salaryId, 888, "2026-10-05");
       await receive(seed, seed.salaryId, 777, "2026-10-06");
