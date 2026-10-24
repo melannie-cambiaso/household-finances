@@ -104,3 +104,14 @@ Pending reimbursements and the budget progress are computed from the records, so
 ## Dashboard
 
 The home page summarizes one month (`?month=YYYY-MM`, current month by default): income and spending against the budget, the net of the month (received minus spent), the state of the budget with a link to create or open it, and the total of reimbursements still pending (from any month). It only reads data. The net is not an account balance: transfers between accounts cannot be recorded yet. For a month without a budget it shows the real amounts and says there is no budget to compare with.
+
+## Transfers and the savings debt
+
+`/transfers` records money moved between two accounts of the household and lists the transfers of a month (`?month=YYYY-MM`, current month by default, by the date of the transfer). Each one has a kind and can be edited or deleted; deleting asks for confirmation and there is no undo.
+
+- **Funding** (for example Salary → Utilities) and **Other** only move money between accounts. A transfer is **never an expense**, so it never counts against the budget; the bills themselves are expenses paid from the Utilities account.
+- **Repayment to savings** must go into a savings account, because that is what it pays back. A repayment anywhere else is refused.
+
+The **savings debt** is never stored. It is computed on every visit as everything spent from savings accounts minus the repayments made into a savings account, over all time: a funding or an other transfer into savings does not pay it. It is shown at the top of `/transfers` and of the dashboard whenever it is above zero, and it disappears when it is zero or when more was repaid than spent.
+
+Account balances are not shown yet.
