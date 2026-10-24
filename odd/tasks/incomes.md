@@ -47,6 +47,6 @@ Branch: `feat/incomes`
 
 ## Not verified
 
-- The authenticated flow in a browser (open the dialog, pick a reimbursement source and see the account preselected and the "Covers expense" field appear, submit, see the row and the pending section update): needs the user's Google session. Service logic is integration-tested; the Server Action, the form and the page are only type-checked, built and checked for the unauthenticated redirect.
+- (Resolved after the PR) The author confirmed in the browser that an expense appears in Pending reimbursements and that a linked reimbursement income was collected.
 - The integration tests ran against a Neon branch copy, not a local Postgres.
 - L2 (user): "por ahora dejemoslo sin revisión" — native review of the feature candidate (`review-91d6bbb859ad1e1c`) left open on purpose after the risk-lens reviewer refused the harness prompt (no JSON returned, slot not consumed). The candidate stays unreviewed; own verification stands.
