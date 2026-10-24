@@ -118,6 +118,10 @@ export const accounts = pgTable("accounts", {
     .references(() => households.id),
   name: text("name").notNull(),
   kind: accountKind("kind").notNull(),
+  // Savings only: how much was saved on `openingBalanceOn`. Both stay null until
+  // the user sets them; the balance is derived from them plus later movements.
+  openingBalance: integer("opening_balance"),
+  openingBalanceOn: date("opening_balance_on", { mode: "string" }),
 });
 
 export const categories = pgTable("categories", {
