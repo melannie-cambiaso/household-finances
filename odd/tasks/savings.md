@@ -50,11 +50,12 @@ Branch: `feat/savings`
 - L2 (user): chose "Saldo y movimientos" for the scope.
 - L3 (user): chose "Lo cargo yo una vez" for the starting point of the balance.
 - L4 (user): chose "Sí, aplicala" to apply migration 0002 to the real database.
+- L5 (user): "ya entendí porque no veo nada y estábien" — the user opened `/savings` with their own session, saw no movements, and accepted that as correct once the opening-date rule was explained. Nothing was said about the modal, the form messages or the month navigation.
 
 ## Not verified
 
 - (Resolved) Migration 0002 was applied to the real database with the user's explicit OK (L4). Checked by reading: 3 migrations registered, `accounts` has `opening_balance` and `opening_balance_on` both nullable, and the 3 accounts are unchanged with both columns null.
-- The page was never opened in a browser with a session: how it looks, the modal, the form messages (invalid amount, future date) and the month navigation are unseen.
+- (Partly resolved) The user opened the page with their own session and found it consistent (L5). Not confirmed in detail: the form messages (invalid amount, future date), the month navigation and a statement that actually lists movements.
 - The action's own session check was not exercised: the fake POST is stopped by the access proxy first.
 - Reading `accounts` now selects two more columns in every module; the full suite passes against the test branch, but the real database has not been touched.
 - No native review: assessed as medium risk, review not due.
