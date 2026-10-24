@@ -43,6 +43,7 @@ Branch: `feat/budget`
 
 (one work-unit commit per task, recorded here)
 - Task 1: `c5a32f5` feat: add budget calendar, form parsing and progress helpers. RED (module not found), then one failing test caused by my own wrong expectation (Feb 2024 has 4 Fridays, not 5; verified against the calendar and replaced with a leap February that has 5 Fridays, 2008), GREEN 57/57, tsc and lint clean.
+- Task 1 verification: independent `gentle-ai-verify` (required because the writer profile was unknown, so the plan raised the tier to high): PASS on S3, S4, S5, S7, no defects. Its only note (S7 coverage was borrowed from the expense tests) was closed in `245549f` test: cover budget form integer limit and zero spellings (58/58). Native review: not due (medium risk, under budget).
 
 ## Log
 
