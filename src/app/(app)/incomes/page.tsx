@@ -18,8 +18,9 @@ import {
 } from "@/lib/income-service";
 import { getAllowedSession } from "@/lib/session";
 
+import { Modal } from "../modal";
 import { DeleteIncomeButton } from "./delete-income-button";
-import { IncomeDialog } from "./income-dialog";
+import { IncomeForm } from "./income-form";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -113,15 +114,18 @@ async function IncomesContent({
           </p>
         ) : (
           <div className="flex justify-end">
-            <IncomeDialog
+            <Modal
               triggerLabel="+ Add income"
               triggerClassName="rounded-full bg-accent px-5 py-2 text-page transition-opacity hover:opacity-90"
               title="Add an income"
-              sources={sources}
-              accounts={accounts}
-              pending={pendingOptions}
-              today={today}
-            />
+            >
+              <IncomeForm
+                sources={sources}
+                accounts={accounts}
+                pending={pendingOptions}
+                today={today}
+              />
+            </Modal>
           </div>
         )}
 
@@ -174,27 +178,30 @@ async function IncomesContent({
                         {formatClp(income.amount)}
                       </p>
                       <div className="mt-2 flex justify-end gap-2">
-                        <IncomeDialog
+                        <Modal
                           triggerLabel="Edit"
                           triggerClassName={rowButtonClass}
                           title="Edit income"
-                          sources={sources}
-                          accounts={accounts}
-                          pending={options}
-                          today={today}
-                          income={{
-                            id: income.id,
-                            values: {
-                              incomeSourceId: income.incomeSourceId,
-                              accountId: income.accountId,
-                              amount: String(income.amount),
-                              receivedOn: income.receivedOn,
-                              // The month input takes YYYY-MM.
-                              budgetMonth: income.budgetMonth.slice(0, 7),
-                              relatedExpenseId: income.relatedExpenseId ?? "",
-                            },
-                          }}
-                        />
+                        >
+                          <IncomeForm
+                            sources={sources}
+                            accounts={accounts}
+                            pending={options}
+                            today={today}
+                            income={{
+                              id: income.id,
+                              values: {
+                                incomeSourceId: income.incomeSourceId,
+                                accountId: income.accountId,
+                                amount: String(income.amount),
+                                receivedOn: income.receivedOn,
+                                // The month input takes YYYY-MM.
+                                budgetMonth: income.budgetMonth.slice(0, 7),
+                                relatedExpenseId: income.relatedExpenseId ?? "",
+                              },
+                            }}
+                          />
+                        </Modal>
                         <DeleteIncomeButton
                           incomeId={income.id}
                           className={rowButtonClass}
