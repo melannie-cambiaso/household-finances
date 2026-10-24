@@ -71,3 +71,13 @@ If the dev server keeps showing old styles after you change the tokens, restart 
 ## Expenses
 
 `/expenses` records spending and lists the expenses of a month (`?month=YYYY-MM`, current month by default). Each expense is recorded against an item and an account, counts toward a budget month (the month it was paid unless you pick another), and freezes the item's reimbursement percentage at that moment. Amounts are whole CLP; dots as thousands separators are accepted. Dates use the America/Santiago time zone. It needs items and accounts: run `pnpm db:seed` first.
+
+## Incomes and reimbursements
+
+`/incomes` records money received and lists the incomes of a month (`?month=YYYY-MM`, current month by default). Each income comes from an income source, lands in an account (the source's usual account is preselected), and counts toward a budget month (the month it was received unless you pick another). Amounts and dates follow the same rules as expenses. It needs income sources and accounts: run `pnpm db:seed` first.
+
+A reimbursement income can be linked to the expense it covers, but only when its source is a reimbursement source and the expense has a reimbursement percentage. A linked income never changes the expense. The "Pending reimbursements" section lists every reimbursable expense, from any month, with what is still owed: the expected amount (`amount × percentage`) minus the sum of the incomes linked to it. Over-reimbursed expenses show nothing owed.
+
+### Integration tests
+
+The service tests for expenses and incomes run only when `TEST_DATABASE_URL` points at a throwaway Postgres (for example a Neon branch) with the migrations applied; otherwise they are skipped. They create their own households and delete them afterwards.

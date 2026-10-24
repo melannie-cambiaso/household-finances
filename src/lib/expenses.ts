@@ -8,7 +8,7 @@ const DESCRIPTION_MAX_LENGTH = 200;
 const MIN_YEAR = 2000;
 const MAX_YEAR = 2100;
 
-const UUID_PATTERN =
+export const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -30,11 +30,11 @@ function inSupportedYears(value: string): boolean {
   return year >= MIN_YEAR && year <= MAX_YEAR;
 }
 
-function isValidMonth(value: string): boolean {
+export function isValidMonth(value: string): boolean {
   return MONTH_PATTERN.test(value) && inSupportedYears(value);
 }
 
-function isValidDate(value: string): boolean {
+export function isValidDate(value: string): boolean {
   if (!DATE_PATTERN.test(value) || !inSupportedYears(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
