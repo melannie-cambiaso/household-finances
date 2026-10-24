@@ -32,7 +32,7 @@ Branch: `feat/budget`
 ## Tasks
 
 - [x] 1. Pure logic (`src/lib/budget.ts`): Fridays in a month, planned amount of a source, planned-amount input validation, progress math — test-first (S3, S4, S5, S7)
-- [ ] 2. Budget service: create a month's draft by copying the previous month; get a month with its lines — test-first with integration test (S1, S3, S6)
+- [x] 2. Budget service: create a month's draft by copying the previous month; get a month with its lines — test-first with integration test (S1, S3, S6)
 - [ ] 3. Budget service: save draft lines (household checks, locked months rejected) and confirm — test-first with integration test (S1, S2, S6)
 - [ ] 4. Budget service: planned vs. actual per item, category and income source — test-first with integration test (S4, S5)
 - [ ] 5. Server Actions and the `/budget` page: create button, draft editor, confirm, sidebar entry
@@ -44,6 +44,7 @@ Branch: `feat/budget`
 (one work-unit commit per task, recorded here)
 - Task 1: `c5a32f5` feat: add budget calendar, form parsing and progress helpers. RED (module not found), then one failing test caused by my own wrong expectation (Feb 2024 has 4 Fridays, not 5; verified against the calendar and replaced with a leap February that has 5 Fridays, 2008), GREEN 57/57, tsc and lint clean.
 - Task 1 verification: independent `gentle-ai-verify` (required because the writer profile was unknown, so the plan raised the tier to high): PASS on S3, S4, S5, S7, no defects. Its only note (S7 coverage was borrowed from the expense tests) was closed in `245549f` test: cover budget form integer limit and zero spellings (58/58). Native review: not due (medium risk, under budget).
+- Task 2: `5b25cb6` feat: add budget service to create a month by copy and read it. RED (module not found), GREEN 6/6 on the Neon branch copy: empty draft without an earlier budget; copy as a draft from a confirmed month with the per-Friday line recomputed (5 Fridays in Oct 2026 -> 4 in Nov, 200.000 not 250.000); most recent earlier month used and later ones ignored; second create returns the existing month without duplicating lines; another household's budget never copied or read; a non-first-day month rejected with nothing inserted. Full suite 79/79, tsc and lint clean, 0 leftover rows.
 
 ## Log
 
