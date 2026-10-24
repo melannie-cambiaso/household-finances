@@ -28,7 +28,7 @@ Branch: `ci/github-actions`
 
 ## Tasks
 
-- T1 (S3): workflow with the `Quality` job; the same commands run locally. Route: inline. Commit: pending.
+- T1 (S3): workflow with the `Quality` job; the same commands run locally. Route: inline. Done, commit 2de47ff: the Quality commands (lint, tsc, unit tests: 113 pass) were run locally without TEST_DATABASE_URL and pass; the YAML parses. The workflow itself has not run on GitHub yet.
 - T2 (S3, S4): `Build` job; the build run locally with fake variables. Route: inline. Commit: pending.
 - T3 (S3, S4): `Tests (Postgres)` job. It cannot be run locally; it is seen on GitHub. Route: inline. Commit: pending.
 - T4 (S3, S4): push, open the pull request and watch the first run: the three jobs green. Route: inline. Commit: pending.
@@ -37,7 +37,7 @@ Branch: `ci/github-actions`
 
 ## Commits
 
-(none yet)
+- 2de47ff ci: add the workflow with the quality checks (T1)
 
 ## Log
 
