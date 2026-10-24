@@ -30,7 +30,7 @@ Branch: `ci/github-actions`
 
 - T1 (S3): workflow with the `Quality` job; the same commands run locally. Route: inline. Done, commit 2de47ff: the Quality commands (lint, tsc, unit tests: 113 pass) were run locally without TEST_DATABASE_URL and pass; the YAML parses. The workflow itself has not run on GitHub yet.
 - T2 (S3, S4): `Build` job; the build run locally with fake variables. Route: inline. Done, commit 407620a: pnpm build passes locally with the six fake variables overriding .env (Next also loaded .env, so a build with no .env at all is only proven by the GitHub run); the YAML parses.
-- T3 (S3, S4): `Tests (Postgres)` job. It cannot be run locally; it is seen on GitHub. Route: inline. Commit: pending.
+- T3 (S3, S4): `Tests (Postgres)` job. It cannot be run locally; it is seen on GitHub. Route: inline. Done, commit 1c4f9b5: the YAML parses and the final guard was seen failing when the suites skip (the output shows them as SKIP). The job itself cannot run locally: it is seen on GitHub in T4.
 - T4 (S3, S4): push, open the pull request and watch the first run: the three jobs green. Route: inline. Commit: pending.
 - T5 (S2, S5): the protection rule on `main` through the GitHub API, and a throwaway pull request with a failing test to see the merge blocked; it is closed and its branch deleted afterwards. Route: inline. Commit: none (repository setting).
 - T6: README section and close with a "Not verified" list. Route: inline. Commit: pending.
@@ -39,6 +39,7 @@ Branch: `ci/github-actions`
 
 - 2de47ff ci: add the workflow with the quality checks (T1)
 - 407620a ci: add the production build job (T2)
+- 1c4f9b5 ci: add the Postgres integration tests job (T3)
 
 ## Log
 
