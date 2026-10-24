@@ -32,7 +32,7 @@ Branch: `feat/savings`
 
 - T1 (S3, S4, S5): pure logic in `src/lib/savings.ts`: opening-balance validation, merging movements, balance and running balance. Route: inline, test-first. Done, commit 3f2d073 (15 tests: RED seen as module-not-found, then GREEN; tsc and lint clean).
 - T2 (S2, S5): additive migration with `opening_balance` and `opening_balance_on` on `accounts`. Applying it to the real database needs the user's explicit OK. Route: inline. File generated and committed in 9a68c4c, NOT applied to any database yet (see Not verified); tsc clean.
-- T3 (S1, S5, S6, S7): `src/lib/savings-service.ts`: set the opening balance, balance per account, movements for a month. Integration tests. Route: inline, test-first. Commit: pending.
+- T3 (S1, S5, S6, S7): `src/lib/savings-service.ts`: set the opening balance, balance per account, movements for a month. Integration tests. Route: inline, test-first. Done, commit 3d311da: 15 integration tests plus 5 for the pure currentBalance, RED seen first (module not found); against the Neon test branch with 0002 applied there; full suite 205/205, tsc and lint clean; test data cleaned up.
 - T4 (S5, S6): Server Action, `/savings` page and sidebar entry. Route: inline. Commit: pending.
 - T5: README section, `docs/data-model.md`, close with a "Not verified" list. Route: inline. Commit: pending.
 
@@ -40,6 +40,7 @@ Branch: `feat/savings`
 
 - 3f2d073 feat: add pure savings balance and statement logic (T1)
 - 9a68c4c feat: add optional opening balance columns to accounts (T2)
+- 3d311da feat: derive savings balances and monthly statements (T3)
 
 ## Log
 
