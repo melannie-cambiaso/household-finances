@@ -41,6 +41,7 @@ Branch: `feat/transfers`
 ## Commits
 
 (one work-unit commit per task, recorded here)
+- Task 1: `91bacc7` feat: add transfer input validation. RED (module not found), GREEN 75/75 without a database (67 existing + 8 new): normalizes a valid transfer; accepts each kind; trims; refuses an account to itself with the error on the destination; reports every invalid field at once; rejects zero, negative and blank amounts; rejects dates outside the supported years. tsc and lint clean.
 
 ## Log
 
