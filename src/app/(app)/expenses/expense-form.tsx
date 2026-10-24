@@ -2,7 +2,12 @@
 
 import { useActionState, useEffect } from "react";
 
-import { createExpenseAction, type ExpenseFormState } from "./actions";
+import {
+  createExpenseAction,
+  updateExpenseAction,
+  type ExpenseFormState,
+  type ExpenseFormValues,
+} from "./actions";
 
 type ItemOption = {
   id: string;
@@ -32,27 +37,33 @@ export function ExpenseForm({
   items,
   accounts,
   today,
+  expense,
   onSuccess,
 }: {
   items: ItemOption[];
   accounts: AccountOption[];
   today: string;
+  // Present when editing: the expense id and the values to pre-fill.
+  expense?: { id: string; values: ExpenseFormValues };
   // Called after an expense is saved, e.g. to close the dialog around the form.
   onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(
-    createExpenseAction,
+    expense ? updateExpenseAction : createExpenseAction,
     initialState,
   );
 
   useEffect(() => {
     if (state.status === "success") onSuccess?.();
   }, [state, onSuccess]);
-  const values = state.status === "error" ? state.values : null;
+  // After a failed save the form shows what was typed, not the stored values.
+  const values =
+    state.status === "error" ? state.values : (expense?.values ?? null);
   const errors = state.status === "error" ? state.errors : {};
 
   return (
     <form action={formAction} className="grid w-full gap-4">
+      {expense && <input type="hidden" name="expenseId" value={expense.id} />}
       <label className="grid gap-1">
         <span className="text-muted">Item</span>
         {/* React does not apply a changed defaultValue to a mounted <select>,
@@ -172,7 +183,7 @@ export function ExpenseForm({
         disabled={pending}
         className="rounded-full bg-accent px-5 py-2 text-page transition-opacity hover:opacity-90 disabled:opacity-50"
       >
-        {pending ? "Saving..." : "Add expense"}
+        {pending ? "Saving..." : expense ? "Save changes" : "Add expense"}
       </button>
     </form>
   );

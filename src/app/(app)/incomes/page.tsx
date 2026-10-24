@@ -18,7 +18,8 @@ import {
 } from "@/lib/income-service";
 import { getAllowedSession } from "@/lib/session";
 
-import { AddIncomeDialog } from "./add-income-dialog";
+import { DeleteIncomeButton } from "./delete-income-button";
+import { IncomeDialog } from "./income-dialog";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -26,6 +27,9 @@ type SearchParams = Promise<{ month?: string | string[] }>;
 
 const pillClass =
   "rounded-full border border-line px-4 py-1 text-sm text-muted transition-colors hover:bg-surface hover:text-text";
+
+const rowButtonClass =
+  "rounded-full border border-line px-3 py-0.5 text-sm text-muted transition-colors hover:bg-page hover:text-text";
 
 export default function IncomesPage({
   searchParams,
@@ -109,7 +113,10 @@ async function IncomesContent({
           </p>
         ) : (
           <div className="flex justify-end">
-            <AddIncomeDialog
+            <IncomeDialog
+              triggerLabel="+ Add income"
+              triggerClassName="rounded-full bg-accent px-5 py-2 text-page transition-opacity hover:opacity-90"
+              title="Add an income"
               sources={sources}
               accounts={accounts}
               pending={pendingOptions}
@@ -133,23 +140,70 @@ async function IncomesContent({
             <p className="text-muted">No incomes for this month.</p>
           ) : (
             <ul className="flex flex-col gap-3">
-              {incomes.map((income) => (
-                <li
-                  key={income.id}
-                  className="flex items-start justify-between gap-4 rounded-2xl border border-line px-4 py-3"
-                >
-                  <div className="min-w-0">
-                    <p>{income.sourceName}</p>
-                    <p className="text-sm text-muted">
-                      {income.receivedOn} · {income.accountName}
-                      {income.relatedExpenseId && " · linked to an expense"}
-                    </p>
-                  </div>
-                  <p className="shrink-0 font-numeric font-bold text-income">
-                    {formatClp(income.amount)}
-                  </p>
-                </li>
-              ))}
+              {incomes.map((income) => {
+                // The expense this income already covers must stay selectable
+                // when editing, even if it is settled and no longer pending.
+                const linkedMissing =
+                  income.relatedExpenseId !== null &&
+                  !pendingOptions.some((o) => o.id === income.relatedExpenseId);
+                const options =
+                  linkedMissing && income.relatedExpenseId
+                    ? [
+                        {
+                          id: income.relatedExpenseId,
+                          label: `${income.relatedExpenseCategory} / ${income.relatedExpenseItem} · ${income.relatedExpenseDate} · settled`,
+                        },
+                        ...pendingOptions,
+                      ]
+                    : pendingOptions;
+
+                return (
+                  <li
+                    key={income.id}
+                    className="flex items-start justify-between gap-4 rounded-2xl border border-line px-4 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p>{income.sourceName}</p>
+                      <p className="text-sm text-muted">
+                        {income.receivedOn} · {income.accountName}
+                        {income.relatedExpenseId && " · linked to an expense"}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-numeric font-bold text-income">
+                        {formatClp(income.amount)}
+                      </p>
+                      <div className="mt-2 flex justify-end gap-2">
+                        <IncomeDialog
+                          triggerLabel="Edit"
+                          triggerClassName={rowButtonClass}
+                          title="Edit income"
+                          sources={sources}
+                          accounts={accounts}
+                          pending={options}
+                          today={today}
+                          income={{
+                            id: income.id,
+                            values: {
+                              incomeSourceId: income.incomeSourceId,
+                              accountId: income.accountId,
+                              amount: String(income.amount),
+                              receivedOn: income.receivedOn,
+                              // The month input takes YYYY-MM.
+                              budgetMonth: income.budgetMonth.slice(0, 7),
+                              relatedExpenseId: income.relatedExpenseId ?? "",
+                            },
+                          }}
+                        />
+                        <DeleteIncomeButton
+                          incomeId={income.id}
+                          className={rowButtonClass}
+                        />
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>

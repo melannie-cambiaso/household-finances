@@ -77,6 +77,9 @@ export async function listExpenses(
   return db
     .select({
       id: schema.expenses.id,
+      itemId: schema.expenses.itemId,
+      accountId: schema.expenses.accountId,
+      budgetMonth: schema.expenses.budgetMonth,
       amount: schema.expenses.amount,
       spentOn: schema.expenses.spentOn,
       description: schema.expenses.description,
@@ -132,4 +135,166 @@ export async function listAccounts(db: Db, householdId: string) {
     .from(schema.accounts)
     .where(eq(schema.accounts.householdId, householdId))
     .orderBy(asc(schema.accounts.name));
+}
+
+/** One expense of the household, as the edit form needs it; null if it is not theirs. */
+export async function getExpense(db: Db, householdId: string, id: string) {
+  const [row] = await db
+    .select({
+      id: schema.expenses.id,
+      itemId: schema.expenses.itemId,
+      accountId: schema.expenses.accountId,
+      amount: schema.expenses.amount,
+      spentOn: schema.expenses.spentOn,
+      budgetMonth: schema.expenses.budgetMonth,
+      description: schema.expenses.description,
+      reimbursementPct: schema.expenses.reimbursementPct,
+    })
+    .from(schema.expenses)
+    .where(
+      and(
+        eq(schema.expenses.id, id),
+        eq(schema.expenses.householdId, householdId),
+      ),
+    );
+  return row ?? null;
+}
+
+export type UpdateExpenseResult =
+  | { ok: true }
+  | {
+      ok: false;
+      error:
+        | "expense_not_found"
+        | "item_not_found"
+        | "account_not_found"
+        | "has_linked_incomes";
+    };
+
+/**
+ * Updates an expense of the household. The item and the account must belong
+ * to the household. The reimbursement percentage stays frozen unless the item
+ * changes, in which case it is copied from the new item. An expense that has
+ * incomes linked to it cannot become non-reimbursable. The author never changes.
+ */
+export async function updateExpense(
+  db: Db,
+  ctx: ExpenseContext,
+  id: string,
+  input: ExpenseInput,
+): Promise<UpdateExpenseResult> {
+  return db.transaction(async (tx) => {
+    const [current] = await tx
+      .select({
+        itemId: schema.expenses.itemId,
+        reimbursementPct: schema.expenses.reimbursementPct,
+      })
+      .from(schema.expenses)
+      .where(
+        and(
+          eq(schema.expenses.id, id),
+          eq(schema.expenses.householdId, ctx.householdId),
+        ),
+      )
+      .for("update");
+    if (!current) return { ok: false as const, error: "expense_not_found" as const };
+
+    const [item] = await tx
+      .select({ reimbursementPct: schema.items.reimbursementPct })
+      .from(schema.items)
+      .innerJoin(
+        schema.categories,
+        eq(schema.items.categoryId, schema.categories.id),
+      )
+      .where(
+        and(
+          eq(schema.items.id, input.itemId),
+          eq(schema.categories.householdId, ctx.householdId),
+        ),
+      );
+    if (!item) return { ok: false as const, error: "item_not_found" as const };
+
+    const [account] = await tx
+      .select({ id: schema.accounts.id })
+      .from(schema.accounts)
+      .where(
+        and(
+          eq(schema.accounts.id, input.accountId),
+          eq(schema.accounts.householdId, ctx.householdId),
+        ),
+      );
+    if (!account) {
+      return { ok: false as const, error: "account_not_found" as const };
+    }
+
+    const reimbursementPct =
+      input.itemId === current.itemId
+        ? current.reimbursementPct
+        : item.reimbursementPct;
+
+    if (reimbursementPct === null) {
+      const [linked] = await tx
+        .select({ id: schema.incomes.id })
+        .from(schema.incomes)
+        .where(eq(schema.incomes.relatedExpenseId, id))
+        .limit(1);
+      if (linked) {
+        return { ok: false as const, error: "has_linked_incomes" as const };
+      }
+    }
+
+    await tx
+      .update(schema.expenses)
+      .set({
+        itemId: input.itemId,
+        accountId: input.accountId,
+        budgetMonth: input.budgetMonth,
+        spentOn: input.spentOn,
+        amount: input.amount,
+        description: input.description,
+        reimbursementPct,
+      })
+      .where(
+        and(
+          eq(schema.expenses.id, id),
+          eq(schema.expenses.householdId, ctx.householdId),
+        ),
+      );
+    return { ok: true as const };
+  });
+}
+
+export type DeleteExpenseResult =
+  | { ok: true }
+  | { ok: false; error: "expense_not_found" };
+
+/**
+ * Deletes an expense of the household. Incomes linked to it are kept as plain
+ * incomes (the money was received); only the link is removed.
+ */
+export async function deleteExpense(
+  db: Db,
+  householdId: string,
+  id: string,
+): Promise<DeleteExpenseResult> {
+  return db.transaction(async (tx) => {
+    const [expense] = await tx
+      .select({ id: schema.expenses.id })
+      .from(schema.expenses)
+      .where(
+        and(
+          eq(schema.expenses.id, id),
+          eq(schema.expenses.householdId, householdId),
+        ),
+      )
+      .for("update");
+    if (!expense) return { ok: false as const, error: "expense_not_found" as const };
+
+    await tx
+      .update(schema.incomes)
+      .set({ relatedExpenseId: null })
+      .where(eq(schema.incomes.relatedExpenseId, id));
+    await tx.delete(schema.expenses).where(eq(schema.expenses.id, id));
+    return { ok: true as const };
+  });
 }

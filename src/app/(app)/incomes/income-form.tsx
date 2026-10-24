@@ -2,7 +2,12 @@
 
 import { useActionState, useEffect, useState } from "react";
 
-import { createIncomeAction, type IncomeFormState } from "./actions";
+import {
+  createIncomeAction,
+  updateIncomeAction,
+  type IncomeFormState,
+  type IncomeFormValues,
+} from "./actions";
 
 type SourceOption = {
   id: string;
@@ -25,37 +30,45 @@ export function IncomeForm({
   accounts,
   pending,
   today,
+  income,
   onSuccess,
 }: {
   sources: SourceOption[];
   accounts: AccountOption[];
   pending: PendingOption[];
   today: string;
+  // Present when editing: the income id and the values to pre-fill.
+  income?: { id: string; values: IncomeFormValues };
   // Called after an income is saved, e.g. to close the dialog around the form.
   onSuccess?: () => void;
 }) {
   const [state, formAction, isSaving] = useActionState(
-    createIncomeAction,
+    income ? updateIncomeAction : createIncomeAction,
     initialState,
   );
 
   useEffect(() => {
     if (state.status === "success") onSuccess?.();
   }, [state, onSuccess]);
-  const values = state.status === "error" ? state.values : null;
+  // After a failed save the form shows what was typed, not the stored values.
+  const values =
+    state.status === "error" ? state.values : (income?.values ?? null);
   const errors = state.status === "error" ? state.errors : {};
 
   // Controlled, because choosing a source picks its usual account and decides
   // whether the related-expense field is shown. Controlled values also survive
   // the form reset that React runs after an action.
-  const [sourceId, setSourceId] = useState("");
-  const [accountId, setAccountId] = useState("");
-  const [relatedId, setRelatedId] = useState("");
+  const [sourceId, setSourceId] = useState(income?.values.incomeSourceId ?? "");
+  const [accountId, setAccountId] = useState(income?.values.accountId ?? "");
+  const [relatedId, setRelatedId] = useState(
+    income?.values.relatedExpenseId ?? "",
+  );
   const source = sources.find((s) => s.id === sourceId);
   const isReimbursement = source?.kind === "reimbursement";
 
   return (
     <form action={formAction} className="grid w-full gap-4">
+      {income && <input type="hidden" name="incomeId" value={income.id} />}
       <label className="grid gap-1">
         <span className="text-muted">Source</span>
         <select
@@ -183,7 +196,7 @@ export function IncomeForm({
         disabled={isSaving}
         className="rounded-full bg-accent px-5 py-2 text-page transition-opacity hover:opacity-90 disabled:opacity-50"
       >
-        {isSaving ? "Saving..." : "Add income"}
+        {isSaving ? "Saving..." : income ? "Save changes" : "Add income"}
       </button>
     </form>
   );
