@@ -20,7 +20,7 @@ Branch: `feat/categories`
 
 - An item cannot be deleted while any expense or budget line points to it; a category cannot be deleted while it has items. The message says how many records block it.
 - Changing an item's percentage does not touch existing expenses (S4). Moving an item to another category regroups its past months in the totals, because a category total is derived from its items (S1); the page says so.
-- Names are trimmed, 1 to 60 characters. A category name must be unique in the household and an item name unique in its category, compared ignoring upper and lower case, with a friendly error. There is no database constraint, so two simultaneous creations could still duplicate; with two people that is accepted.
+- Names are trimmed, 1 to 60 characters. A category name must be unique in the household and an item name unique in its category, compared ignoring upper and lower case, with a friendly error. There is no database constraint, so the household row is locked while a name is checked and written: two simultaneous creations cannot both pass the check.
 - The percentage is a whole number from 0 to 100, or blank for not reimbursable (S3).
 - Same security model as the other pages: the Server Actions re-check the session; the household comes from the session, never the form; every id sent by the form must belong to the household.
 - The page works with whatever exists, including an empty household, so the seed data can be removed entirely and replaced.
@@ -29,7 +29,7 @@ Branch: `feat/categories`
 ## Tasks
 
 - [x] 1. Pure logic (`src/lib/catalog.ts`): validate category names and item input, name comparison — test-first (S3, S7)
-- [ ] 2. Category service: list with items, create, rename, delete with usage rule — test-first with integration test (S1, S6)
+- [x] 2. Category service: list with items, create, rename, delete with usage rule — test-first with integration test (S1, S6)
 - [ ] 3. Item service: create, update (rename, percentage, move), delete with usage rule — test-first with integration test (S3, S4, S6)
 - [ ] 4. Server Actions and the `/categories` page with a sidebar entry
 - [ ] 5. README and close
