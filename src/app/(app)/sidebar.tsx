@@ -9,6 +9,7 @@ import { SignOutButton } from "./sign-out-button";
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/expenses", label: "Expenses", icon: "💸" },
+  { href: "/incomes", label: "Incomes", icon: "💰" },
 ];
 
 function isActive(pathname: string, href: string) {
