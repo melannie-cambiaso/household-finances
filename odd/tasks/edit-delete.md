@@ -29,7 +29,7 @@ Branch: `feat/edit-delete`
 
 - [x] 1. Expense service: get one, update (frozen percentage rules) and delete (unlink incomes) — test-first with integration test (S2, S3)
 - [x] 2. Income service: get one, update and delete — test-first with integration test (S4)
-- [ ] 3. Expenses page: edit and delete from each row
+- [x] 3. Expenses page: edit and delete from each row
 - [ ] 4. Incomes page: edit and delete from each row
 - [ ] 5. README and close
 
@@ -38,6 +38,7 @@ Branch: `feat/edit-delete`
 (one work-unit commit per task, recorded here)
 - Task 1: `3875c51` feat: edit and delete expenses in the expense service. RED (deleteExpense not exported), GREEN 14/14 on the Neon branch copy (the 6 existing tests still pass, 8 new): get only within the household; update keeps the author and the frozen percentage (even after the item's percentage changed); changing the item re-freezes from the new item; item/account from another household rejected with the row unchanged; another household's expense cannot be updated; making an expense non-reimbursable while incomes are linked is refused; delete keeps the linked incomes as plain incomes (S2); another household's expense and its link survive a delete attempt. Full suite 105/105, tsc and lint clean, 0 leftover rows.
 - Task 2: `ff388f9` feat: edit and delete incomes in the income service. RED (deleteIncome not exported). `createIncome` refactored so creating and editing share one rule check (`checkIncomeTargets`); its 9 existing tests are the proof that creation still behaves the same. GREEN 16/16 on the Neon branch copy (9 existing + 7 new): get only within the household; update keeps the author; link and unlink a reimbursement changes what is pending (30.000 received -> 40.000 pending, unlinked -> 70.000); the five creation rules refuse an edit and leave the row unchanged; another household's income cannot be updated or deleted; deleting a linked income makes its expense pending again. Full suite 112/112, tsc and lint clean, 0 leftover rows.
+- Task 3: `d08217f` feat: edit and delete expenses from the expenses page. The list now returns item, account and month; `updateExpenseAction` and `deleteExpenseAction` re-check the session; the expense form and the modal serve both adding and editing (`ExpenseDialog`, ids made unique with `useId` since each row has its own modal); delete asks for a browser confirmation. tsc, lint, 112 tests and build PASS. Unauthenticated GET and a fake direct POST to `/expenses` redirect to `/login` (that POST is stopped by the access proxy, so it does not exercise the action's own session check). The UI itself (pre-filled modal, delete confirmation, error messages) is not exercised with a session.
 
 ## Log
 
