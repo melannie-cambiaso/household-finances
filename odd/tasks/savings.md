@@ -34,7 +34,7 @@ Branch: `feat/savings`
 - T2 (S2, S5): additive migration with `opening_balance` and `opening_balance_on` on `accounts`. Applying it to the real database needs the user's explicit OK. Route: inline. File generated and committed in 9a68c4c, NOT applied to any database yet (see Not verified); tsc clean.
 - T3 (S1, S5, S6, S7): `src/lib/savings-service.ts`: set the opening balance, balance per account, movements for a month. Integration tests. Route: inline, test-first. Done, commit 3d311da: 15 integration tests plus 5 for the pure currentBalance, RED seen first (module not found); against the Neon test branch with 0002 applied there; full suite 205/205, tsc and lint clean; test data cleaned up.
 - T4 (S5, S6): Server Action, `/savings` page and sidebar entry. Route: inline. Done, commit c1e4981: tsc, lint and build pass; /savings is Partial Prerender; an unauthenticated GET, GET with a month and a fake direct POST all answer 307 to /login. NOT seen in a browser with a session.
-- T5: README section, `docs/data-model.md`, close with a "Not verified" list. Route: inline. Commit: pending.
+- T5: README section, `docs/data-model.md`, close with a "Not verified" list. Route: inline. Done in the docs commit below: README section, `docs/data-model.md` (two columns and the savings balance formula).
 
 ## Commits
 
@@ -51,4 +51,8 @@ Branch: `feat/savings`
 
 ## Not verified
 
-(to fill when the feature closes)
+- Migration 0002 is applied only to the Neon test branch. It is NOT applied to the real database: until it is, the new code cannot read `accounts` there. It has to be applied before merging, with the user's explicit OK.
+- The page was never opened in a browser with a session: how it looks, the modal, the form messages (invalid amount, future date) and the month navigation are unseen.
+- The action's own session check was not exercised: the fake POST is stopped by the access proxy first.
+- Reading `accounts` now selects two more columns in every module; the full suite passes against the test branch, but the real database has not been touched.
+- No native review: assessed as medium risk, review not due.

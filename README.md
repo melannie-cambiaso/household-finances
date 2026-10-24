@@ -114,7 +114,7 @@ The home page summarizes one month (`?month=YYYY-MM`, current month by default):
 
 The **savings debt** is never stored. It is computed on every visit as everything spent from savings accounts minus the repayments made into a savings account, over all time: a funding or an other transfer into savings does not pay it. It is shown at the top of `/transfers` and of the dashboard whenever it is above zero, and it disappears when it is zero or when more was repaid than spent.
 
-Account balances are not shown yet.
+Account balances are not shown here; the savings balance is on `/savings`.
 
 ## Deploying to Vercel
 
@@ -153,3 +153,17 @@ The first deployment failed at the install step with `ERR_PNPM_IGNORED_BUILDS`: 
 - **An item that has expenses or budget lines cannot be deleted**, and neither can a category that still has items. The page says what blocks it. To get rid of an item that was used, rename it, or edit those expenses to use another item and delete it once nothing points to it.
 - Changing an item's percentage affects only expenses recorded afterwards: each expense keeps the percentage it was created with. Moving an item to another category regroups its past months under the new category in the totals, because a category total is the sum of its items.
 - There is no archive and no undo.
+
+## Savings
+
+`/savings` shows how much the household has saved and how it moved. It lists every savings account with its balance today, the total on top, and the movements of one calendar month (`?month=YYYY-MM`, current month by default) with the balance at the start and at the end of that month.
+
+The page needs a starting point. For each savings account, use **Set opening balance** to type how much was saved on a given day (zero is allowed; the day cannot be in the future). Until then the account shows no balance.
+
+- **The balance is never stored.** It is computed on every visit: the opening amount, plus incomes received into the account, plus transfers into it, minus transfers out of it, minus expenses paid from it, up to today. Only the opening amount and its date are stored, in two optional columns of `accounts`.
+- **Only movements after the opening date count.** A movement made on the opening date itself is assumed to be inside the typed amount. Movements dated after today are not counted yet.
+- **Several savings accounts** each have their own balance and the page shows their sum. A transfer between two of them changes neither total.
+- **The savings debt is a different number.** It still lives on `/transfers` and the dashboard and counts only what was spent from savings minus the repayments. Changing the opening balance never changes it.
+- Changing the opening balance later moves every balance by the difference. There is no history of past values.
+
+Savings goals and account balances for Salary and Utilities are not part of this page.
