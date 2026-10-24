@@ -42,6 +42,7 @@ Branch: `feat/budget`
 ## Commits
 
 (one work-unit commit per task, recorded here)
+- Task 1: `c5a32f5` feat: add budget calendar, form parsing and progress helpers. RED (module not found), then one failing test caused by my own wrong expectation (Feb 2024 has 4 Fridays, not 5; verified against the calendar and replaced with a leap February that has 5 Fridays, 2008), GREEN 57/57, tsc and lint clean.
 
 ## Log
 
