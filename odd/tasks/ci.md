@@ -19,7 +19,7 @@ Branch: `ci/github-actions`
 ## Design decisions (mine, not the user's; change them if you disagree)
 
 - One workflow `CI` that runs on every pull request to `main` and on every push to `main`, with three jobs named `Quality`, `Tests (Postgres)` and `Build`. The job names are what the protection rule requires.
-- `Quality`: lint, type check, unit tests. `Tests (Postgres)`: Postgres 17 service, `pnpm db:migrate` from scratch, then the full suite with `TEST_DATABASE_URL` set. `Build`: `pnpm build` with fake environment variables.
+- `Quality`: lint, route types (`next typegen`), type check, unit tests. The route types are a generated file that a fresh checkout does not have; the first run failed on `LayoutProps` because of it. `Tests (Postgres)`: Postgres 17 service, `pnpm db:migrate` from scratch, then the full suite with `TEST_DATABASE_URL` set. `Build`: `pnpm build` with fake environment variables.
 - Node 24 and the pnpm version from `packageManager`, installed with `--frozen-lockfile`.
 - The fake variables of the `Build` job are plain values in the workflow, not secrets: the build never connects to the database.
 - The jobs get read-only repository permissions, and a new push cancels the run of the same branch that is still going.
