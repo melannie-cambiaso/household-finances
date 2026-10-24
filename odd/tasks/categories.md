@@ -38,6 +38,7 @@ Branch: `feat/categories`
 
 (one work-unit commit per task, recorded here)
 - Task 1: `921f885` feat: add category and item validation. RED (module not found), GREEN 88/88 without a database (75 existing + 13 new): names are trimmed, blank refused, exactly 60 characters accepted and 61 refused (counted after trimming); duplicate detection ignores case and repeated spaces; a blank percentage means not reimbursable, 0 and 100 are accepted, and 101, -1, 70.5, 70%, abc, 1e2 and 07x are refused with the error on the percentage only; every invalid field is reported at once. tsc and lint clean.
+- Task 2: `9f78b11` feat: add category service with duplicate and usage rules. RED (module not found), GREEN 9/9 on the Neon branch copy: create; a duplicate ignoring case and spaces is refused with nothing inserted; the same name is allowed in two households; rename, including changing only the case of its own name; renaming onto another category's name is refused and changes nothing; another household's category cannot be renamed or deleted and survives; an empty category is deleted; one with items is refused saying how many. The household row is locked while a name is checked and written. Full suite 158/158, tsc and lint clean, 0 leftover rows. The lock itself is not raced by a test.
 
 ## Log
 
