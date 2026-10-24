@@ -33,7 +33,7 @@ Branch: `feat/transfers`
 
 - [x] 1. Pure logic (`src/lib/transfers.ts`): input validation (distinct accounts, kind, amount, date) — test-first (S1, S6, S7)
 - [x] 2. Transfer service: create, get, update, delete, list by month; household and repayment rules — test-first with integration test (S1, S3, S7)
-- [ ] 3. Savings debt query — test-first with integration test (S3, S4, S5)
+- [x] 3. Savings debt query — test-first with integration test (S3, S4, S5)
 - [ ] 4. Server Actions and the `/transfers` page (form and modal, list, edit, delete, debt banner) with a sidebar entry
 - [ ] 5. Debt card on the dashboard
 - [ ] 6. README and close
@@ -43,6 +43,7 @@ Branch: `feat/transfers`
 (one work-unit commit per task, recorded here)
 - Task 1: `91bacc7` feat: add transfer input validation. RED (module not found), GREEN 75/75 without a database (67 existing + 8 new): normalizes a valid transfer; accepts each kind; trims; refuses an account to itself with the error on the destination; reports every invalid field at once; rejects zero, negative and blank amounts; rejects dates outside the supported years. tsc and lint clean.
 - Task 2: `4e603a1` feat: add transfer service with household isolation. RED (module not found), GREEN 10/10 on the Neon branch copy: creates a funding transfer; a repayment into a savings account is accepted and refused anywhere else (nothing inserted); funding and other can go into savings; an account of another household is refused with nothing inserted; get only within the household; update; the creation rules also refuse an edit and leave the row unchanged; another household's transfer cannot be updated or deleted and survives; the month list includes the first and last day, excludes the day before and after, is newest first, has the account names and is household-scoped. Full suite 131/131, tsc and lint clean, 0 leftover rows.
+- Task 3: `3aaafc5` feat: compute the savings debt from expenses and repayments. RED (getSavingsDebt not exported), GREEN 15/15 on the Neon branch copy (10 existing + 5 new): zero when nothing was spent from savings; the sum of what was spent from savings over any month (spending from other accounts ignored); reduced only by repayments that end in a savings account (funding or other into savings, and a repayment that does not end in savings inserted directly, reduce nothing); negative when over-repaid, and editing or deleting the repayment moves the debt (derived, not stored); another household's expenses and repayments ignored. `tsc` caught 4 type errors in my own test (the helper was typed with kind 'funding' only) although the tests passed at runtime; fixed. Full suite 136/136, tsc and lint clean, 0 leftover rows.
 
 ## Log
 
