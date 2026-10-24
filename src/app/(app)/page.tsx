@@ -12,6 +12,7 @@ import {
   todayIn,
 } from "@/lib/expenses";
 import { listPendingReimbursements } from "@/lib/income-service";
+import { getSavingsDebt } from "@/lib/transfer-service";
 import { getAllowedSession } from "@/lib/session";
 
 import { Bar, Figures } from "./budget/progress-section";
@@ -65,10 +66,11 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
     today,
   );
 
-  const [report, budget, pending] = await Promise.all([
+  const [report, budget, pending, debt] = await Promise.all([
     getBudgetProgress(db, householdId, month),
     getBudgetMonth(db, householdId, month),
     listPendingReimbursements(db, householdId),
+    getSavingsDebt(db, householdId),
   ]);
 
   const income = report.incomeTotal;
@@ -106,6 +108,25 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
       </header>
 
       <main className="mx-auto grid w-full max-w-3xl gap-6 p-8 md:grid-cols-2">
+        {/* Always visible while above zero, whatever month is shown. */}
+        {debt > 0 && (
+          <section
+            role="status"
+            className="rounded-card border border-expense bg-surface p-6 md:col-span-2"
+          >
+            <h2 className="mb-1 text-xl">Savings debt</h2>
+            <p>
+              <span className="font-numeric text-3xl font-bold text-expense">
+                {formatClp(debt)}
+              </span>{" "}
+              <span className="text-muted">still to repay to savings</span>
+            </p>
+            <Link href="/transfers" className="mt-4 inline-block text-sm underline">
+              Register a repayment
+            </Link>
+          </section>
+        )}
+
         <section className={cardClass}>
           <h2 className="mb-3 text-xl">Income</h2>
           {budget ? (

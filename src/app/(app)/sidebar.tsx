@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/expenses", label: "Expenses", icon: "💸" },
   { href: "/incomes", label: "Incomes", icon: "💰" },
   { href: "/budget", label: "Budget", icon: "📊" },
+  { href: "/transfers", label: "Transfers", icon: "🔁" },
 ];
 
 function isActive(pathname: string, href: string) {
