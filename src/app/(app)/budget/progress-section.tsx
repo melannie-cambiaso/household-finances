@@ -1,7 +1,7 @@
 import { barWidth, type Progress, type ProgressReport } from "@/lib/budget";
 import { formatClp } from "@/lib/expenses";
 
-function Bar({ progress, tone }: { progress: Progress; tone: "expense" | "income" }) {
+export function Bar({ progress, tone }: { progress: Progress; tone: "expense" | "income" }) {
   // Spending past the plan is a warning; income past the plan is good news.
   const bad = tone === "expense" && progress.over;
   return (
@@ -20,7 +20,7 @@ function Bar({ progress, tone }: { progress: Progress; tone: "expense" | "income
   );
 }
 
-function Figures({
+export function Figures({
   progress,
   tone,
 }: {
