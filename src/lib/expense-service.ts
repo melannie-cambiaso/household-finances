@@ -77,6 +77,9 @@ export async function listExpenses(
   return db
     .select({
       id: schema.expenses.id,
+      itemId: schema.expenses.itemId,
+      accountId: schema.expenses.accountId,
+      budgetMonth: schema.expenses.budgetMonth,
       amount: schema.expenses.amount,
       spentOn: schema.expenses.spentOn,
       description: schema.expenses.description,

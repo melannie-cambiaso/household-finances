@@ -18,7 +18,8 @@ import {
 } from "@/lib/expenses";
 import { getAllowedSession } from "@/lib/session";
 
-import { AddExpenseDialog } from "./add-expense-dialog";
+import { DeleteExpenseButton } from "./delete-expense-button";
+import { ExpenseDialog } from "./expense-dialog";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -26,6 +27,9 @@ type SearchParams = Promise<{ month?: string | string[] }>;
 
 const pillClass =
   "rounded-full border border-line px-4 py-1 text-sm text-muted transition-colors hover:bg-surface hover:text-text";
+
+const rowButtonClass =
+  "rounded-full border border-line px-3 py-0.5 text-sm text-muted transition-colors hover:bg-page hover:text-text";
 
 export default function ExpensesPage({
   searchParams,
@@ -103,7 +107,14 @@ async function ExpensesContent({
           </p>
         ) : (
           <div className="flex justify-end">
-            <AddExpenseDialog items={items} accounts={accounts} today={today} />
+            <ExpenseDialog
+              triggerLabel="+ Add expense"
+              triggerClassName="rounded-full bg-accent px-5 py-2 text-page transition-opacity hover:opacity-90"
+              title="Add an expense"
+              items={items}
+              accounts={accounts}
+              today={today}
+            />
           </div>
         )}
 
@@ -153,6 +164,32 @@ async function ExpensesContent({
                         </span>
                       </p>
                     )}
+                    <div className="mt-2 flex justify-end gap-2">
+                      <ExpenseDialog
+                        triggerLabel="Edit"
+                        triggerClassName={rowButtonClass}
+                        title="Edit expense"
+                        items={items}
+                        accounts={accounts}
+                        today={today}
+                        expense={{
+                          id: expense.id,
+                          values: {
+                            itemId: expense.itemId,
+                            accountId: expense.accountId,
+                            amount: String(expense.amount),
+                            spentOn: expense.spentOn,
+                            // The month input takes YYYY-MM.
+                            budgetMonth: expense.budgetMonth.slice(0, 7),
+                            description: expense.description ?? "",
+                          },
+                        }}
+                      />
+                      <DeleteExpenseButton
+                        expenseId={expense.id}
+                        className={rowButtonClass}
+                      />
+                    </div>
                   </div>
                 </li>
               ))}
