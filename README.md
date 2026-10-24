@@ -81,3 +81,13 @@ A reimbursement income can be linked to the expense it covers, but only when its
 ### Integration tests
 
 The service tests for expenses and incomes run only when `TEST_DATABASE_URL` points at a throwaway Postgres (for example a Neon branch) with the migrations applied; otherwise they are skipped. They create their own households and delete them afterwards.
+
+## Monthly budget
+
+`/budget` plans a month and compares it with what actually happened (`?month=YYYY-MM`, current month by default).
+
+1. **Create.** A month with no budget shows a "Create budget" button. The new budget is a **draft** copied from the most recent earlier month; income from a per-Friday source is recalculated as `rate × Fridays in the new month`. It starts empty when there is no earlier budget.
+2. **Edit.** A draft lists every item and income source with an amount field. Leave a field blank for no line; `0` is a planned amount of zero. Saving replaces the draft's lines all at once, and nothing is saved if any amount is invalid.
+3. **Confirm.** Confirming locks the budget: it cannot be edited or reopened (the server refuses further saves, not just the UI). Expenses and incomes can still be recorded in any month.
+
+Under the budget, "Spending vs. budget" shows planned vs. spent per item and per category, and "Income vs. budget" shows planned vs. received per source, including reimbursement income. Spending or income with no line appears tagged "not planned". Amounts count toward the month they were assigned to, not the date they were paid.
