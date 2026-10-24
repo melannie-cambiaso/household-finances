@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { transferKindLabel, validateTransferInput } from "./transfers.ts";
+import {
+  debtStanding,
+  transferKindLabel,
+  validateTransferInput,
+} from "./transfers.ts";
 
 const SALARY = "11111111-1111-4111-8111-111111111111";
 const SAVINGS = "22222222-2222-4222-8222-222222222222";
@@ -95,5 +99,21 @@ describe("transferKindLabel", () => {
     assert.equal(transferKindLabel("repayment"), "Repayment to savings");
     assert.equal(transferKindLabel("funding"), "Funding");
     assert.equal(transferKindLabel("other"), "Other");
+  });
+});
+
+describe("debtStanding", () => {
+  it("is a debt while more was spent from savings than repaid", () => {
+    assert.deepEqual(debtStanding(567804), { kind: "debt", amount: 567804 });
+    assert.deepEqual(debtStanding(1), { kind: "debt", amount: 1 });
+  });
+
+  it("is a credit, as a positive amount, when more was repaid than spent", () => {
+    assert.deepEqual(debtStanding(-50000), { kind: "credit", amount: 50000 });
+    assert.deepEqual(debtStanding(-1), { kind: "credit", amount: 1 });
+  });
+
+  it("is nothing when savings are exactly even", () => {
+    assert.deepEqual(debtStanding(0), { kind: "even" });
   });
 });

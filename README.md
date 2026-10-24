@@ -112,7 +112,7 @@ The home page summarizes one month (`?month=YYYY-MM`, current month by default):
 - **Funding** (for example Salary → Utilities) and **Other** only move money between accounts. A transfer is **never an expense**, so it never counts against the budget; the bills themselves are expenses paid from the Utilities account.
 - **Repayment to savings** must go into a savings account, because that is what it pays back. A repayment anywhere else is refused.
 
-The **savings debt** is never stored. It is computed on every visit as everything spent from savings accounts minus the repayments made into a savings account, over all time: a funding or an other transfer into savings does not pay it. It is shown at the top of `/transfers` and of the dashboard whenever it is above zero, and it disappears when it is zero or when more was repaid than spent.
+The **savings debt** is never stored. It is computed on every visit as everything spent from savings accounts minus the repayments made into a savings account, over all time: a funding or an other transfer into savings does not pay it. It is shown at the top of `/transfers` and of the dashboard whenever it is above zero. When more was repaid than spent it turns into a green **Savings credit** with the extra amount, and it is hidden only when savings are exactly even.
 
 Account balances are not shown here; the savings balance is on `/savings`.
 
