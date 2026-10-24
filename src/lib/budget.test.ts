@@ -70,6 +70,15 @@ describe("parseBudgetForm", () => {
     }
   });
 
+  it("rejects zero written other than as a plain 0, and amounts over the integer limit", () => {
+    for (const raw of ["00", "0.000", "2.147.483.648"]) {
+      const result = parseBudgetForm([[`item:${ITEM}`, raw]]);
+      assert.equal(result.ok, false, raw);
+    }
+    const limit = parseBudgetForm([[`item:${ITEM}`, "2.147.483.647"]]);
+    assert.equal(limit.ok, true);
+  });
+
   it("ignores fields that are not budget amounts", () => {
     const result = parseBudgetForm([
       ["month", "2026-10"],
