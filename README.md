@@ -100,3 +100,7 @@ Every expense in `/expenses` and every income in `/incomes` has **Edit** and **D
 - **Delete** asks for confirmation first. Deleting an expense keeps the reimbursement incomes that were linked to it, as ordinary incomes. Deleting an income that covered an expense makes that expense pending again.
 
 Pending reimbursements and the budget progress are computed from the records, so they update by themselves after an edit or a delete. There is no undo and no history of changes.
+
+## Dashboard
+
+The home page summarizes one month (`?month=YYYY-MM`, current month by default): income and spending against the budget, the net of the month (received minus spent), the state of the budget with a link to create or open it, and the total of reimbursements still pending (from any month). It only reads data. The net is not an account balance: transfers between accounts cannot be recorded yet. For a month without a budget it shows the real amounts and says there is no budget to compare with.
