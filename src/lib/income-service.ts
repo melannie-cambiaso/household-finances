@@ -116,11 +116,19 @@ export async function listIncomes(
   return db
     .select({
       id: schema.incomes.id,
+      incomeSourceId: schema.incomes.incomeSourceId,
+      accountId: schema.incomes.accountId,
+      budgetMonth: schema.incomes.budgetMonth,
       amount: schema.incomes.amount,
       receivedOn: schema.incomes.receivedOn,
       relatedExpenseId: schema.incomes.relatedExpenseId,
       sourceName: schema.incomeSources.name,
       accountName: schema.accounts.name,
+      // The linked expense, so the edit form can offer it even when it is
+      // already settled and therefore no longer in the pending list.
+      relatedExpenseItem: schema.items.name,
+      relatedExpenseCategory: schema.categories.name,
+      relatedExpenseDate: schema.expenses.spentOn,
     })
     .from(schema.incomes)
     .innerJoin(
@@ -130,6 +138,15 @@ export async function listIncomes(
     .innerJoin(
       schema.accounts,
       eq(schema.incomes.accountId, schema.accounts.id),
+    )
+    .leftJoin(
+      schema.expenses,
+      eq(schema.incomes.relatedExpenseId, schema.expenses.id),
+    )
+    .leftJoin(schema.items, eq(schema.expenses.itemId, schema.items.id))
+    .leftJoin(
+      schema.categories,
+      eq(schema.items.categoryId, schema.categories.id),
     )
     .where(
       and(

@@ -551,6 +551,32 @@ describe("income service", { skip: !url }, () => {
       );
     });
 
+    it("lists what the edit form needs, including the label of the linked expense", async () => {
+      const seed = await seedHousehold("inc-list-edit");
+      // A settled expense is no longer "pending", yet its income must still show it.
+      const expenseId = await insertExpense(seed, seed.reimbursableItemId, 100_000, 70, "2026-09-12");
+      const linkedId = await makeIncome(seed, {
+        incomeSourceId: seed.reimbursementSourceId,
+        amount: 70_000,
+        relatedExpenseId: expenseId,
+      });
+      const plainId = await makeIncome(seed);
+
+      const rows = await listIncomes(db, seed.householdId, "2026-10-01");
+      const linked = rows.find((r) => r.id === linkedId);
+      const plain = rows.find((r) => r.id === plainId);
+
+      assert.equal(linked?.incomeSourceId, seed.reimbursementSourceId);
+      assert.equal(linked?.accountId, seed.accountId);
+      assert.equal(linked?.budgetMonth, "2026-10-01");
+      assert.deepEqual(
+        [linked?.relatedExpenseCategory, linked?.relatedExpenseItem, linked?.relatedExpenseDate],
+        ["Health", "Doctor", "2026-09-12"],
+      );
+      assert.equal(plain?.relatedExpenseItem, null);
+      assert.equal(plain?.relatedExpenseDate, null);
+    });
+
     it("cannot delete an income of another household or one that does not exist", async () => {
       const seed = await seedHousehold("inc-del-attacker");
       const victim = await seedHousehold("inc-del-victim");
