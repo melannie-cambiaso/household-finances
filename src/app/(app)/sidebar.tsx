@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/expenses", label: "Expenses", icon: "💸" },
   { href: "/incomes", label: "Incomes", icon: "💰" },
+  { href: "/budget", label: "Budget", icon: "📊" },
 ];
 
 function isActive(pathname: string, href: string) {
