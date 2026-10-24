@@ -7,9 +7,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import * as schema from "../db/schema.ts";
+import type { TransferInput } from "./transfers.ts";
 import {
   createTransfer,
   deleteTransfer,
+  getSavingsDebt,
   getTransfer,
   listTransfers,
   updateTransfer,
@@ -48,12 +50,13 @@ describe("transfer service", { skip: !url }, () => {
   }
   type Seed = Awaited<ReturnType<typeof seedHousehold>>;
 
-  const funding = (seed: Seed) => ({
+  // Typed as a full TransferInput so a test can override the kind.
+  const funding = (seed: Seed): TransferInput => ({
     fromAccountId: seed.salaryId,
     toAccountId: seed.utilitiesId,
     amount: 200_000,
     madeOn: "2026-10-05",
-    kind: "funding" as const,
+    kind: "funding",
   });
 
   async function rowOf(id: string) {
@@ -82,6 +85,27 @@ describe("transfer service", { skip: !url }, () => {
     await db
       .delete(schema.transfers)
       .where(inArray(schema.transfers.householdId, householdIds));
+    await db
+      .delete(schema.expenses)
+      .where(inArray(schema.expenses.householdId, householdIds));
+    for (const householdId of householdIds) {
+      const categories = await db
+        .select({ id: schema.categories.id })
+        .from(schema.categories)
+        .where(eq(schema.categories.householdId, householdId));
+      const categoryIds = categories.map((c) => c.id);
+      if (categoryIds.length > 0) {
+        await db
+          .delete(schema.items)
+          .where(inArray(schema.items.categoryId, categoryIds));
+      }
+      await db
+        .delete(schema.categories)
+        .where(eq(schema.categories.householdId, householdId));
+    }
+    await db
+      .delete(schema.users)
+      .where(inArray(schema.users.householdId, householdIds));
     await db
       .delete(schema.accounts)
       .where(inArray(schema.accounts.householdId, householdIds));
@@ -267,5 +291,117 @@ describe("transfer service", { skip: !url }, () => {
     assert.equal(rows[0].fromName, "Salary");
     assert.equal(rows[0].toName, "Utilities");
     assert.equal(rows[0].kind, "funding");
+  });
+
+  describe("savings debt", () => {
+    // Expenses need a user, a category and an item, on top of the accounts.
+    async function seedDebt(label: string) {
+      const seed = await seedHousehold(label);
+      const [user] = await db
+        .insert(schema.users)
+        .values({
+          householdId: seed.householdId,
+          name: label,
+          email: `${label}-${randomUUID()}@test.invalid`,
+        })
+        .returning();
+      const [category] = await db
+        .insert(schema.categories)
+        .values({ householdId: seed.householdId, name: "Home" })
+        .returning();
+      const [item] = await db
+        .insert(schema.items)
+        .values({ categoryId: category.id, name: "Rent", reimbursementPct: null })
+        .returning();
+      return { ...seed, userId: user.id, itemId: item.id };
+    }
+    type DebtSeed = Awaited<ReturnType<typeof seedDebt>>;
+
+    async function spend(seed: DebtSeed, accountId: string, amount: number, month = "2026-10-01") {
+      await db.insert(schema.expenses).values({
+        householdId: seed.householdId,
+        itemId: seed.itemId,
+        accountId,
+        budgetMonth: month,
+        spentOn: month,
+        amount,
+        createdBy: seed.userId,
+      });
+    }
+
+    it("is zero when nothing was spent from savings", async () => {
+      const seed = await seedDebt("debt-zero");
+      assert.equal(await getSavingsDebt(db, seed.householdId), 0);
+
+      await spend(seed, seed.salaryId, 500_000); // not from savings
+      assert.equal(await getSavingsDebt(db, seed.householdId), 0);
+    });
+
+    it("is what was spent from savings, over any month", async () => {
+      const seed = await seedDebt("debt-spent");
+      await spend(seed, seed.savingsId, 100_000, "2026-01-01");
+      await spend(seed, seed.savingsId, 50_000, "2026-10-01");
+      await spend(seed, seed.salaryId, 999_000); // ignored
+      assert.equal(await getSavingsDebt(db, seed.householdId), 150_000);
+    });
+
+    it("is reduced only by repayments into a savings account", async () => {
+      const seed = await seedDebt("debt-repay");
+      await spend(seed, seed.savingsId, 150_000);
+
+      await make(seed, { toAccountId: seed.savingsId, kind: "repayment", amount: 40_000 });
+      assert.equal(await getSavingsDebt(db, seed.householdId), 110_000);
+
+      // Money moved into savings for another reason does not pay the debt.
+      await make(seed, { toAccountId: seed.savingsId, kind: "funding", amount: 30_000 });
+      await make(seed, { toAccountId: seed.savingsId, kind: "other", amount: 20_000 });
+      assert.equal(await getSavingsDebt(db, seed.householdId), 110_000);
+
+      // A repayment that does not end in savings reduces nothing. The service
+      // refuses to create one, so it is inserted directly to test the query.
+      await db.insert(schema.transfers).values({
+        householdId: seed.householdId,
+        fromAccountId: seed.salaryId,
+        toAccountId: seed.utilitiesId,
+        amount: 70_000,
+        madeOn: "2026-10-05",
+        kind: "repayment",
+      });
+      assert.equal(await getSavingsDebt(db, seed.householdId), 110_000);
+    });
+
+    it("goes negative when more was repaid than spent, and is derived, not stored", async () => {
+      const seed = await seedDebt("debt-derived");
+      await spend(seed, seed.savingsId, 100_000);
+      const repayment = await make(seed, {
+        toAccountId: seed.savingsId,
+        kind: "repayment",
+        amount: 130_000,
+      });
+      assert.equal(await getSavingsDebt(db, seed.householdId), -30_000);
+
+      // Editing and deleting the repayment moves the debt: nothing is stored.
+      await updateTransfer(db, seed.householdId, repayment, {
+        ...funding(seed),
+        toAccountId: seed.savingsId,
+        kind: "repayment",
+        amount: 25_000,
+      });
+      assert.equal(await getSavingsDebt(db, seed.householdId), 75_000);
+
+      await deleteTransfer(db, seed.householdId, repayment);
+      assert.equal(await getSavingsDebt(db, seed.householdId), 100_000);
+    });
+
+    it("ignores another household's expenses and repayments", async () => {
+      const seed = await seedDebt("debt-mine");
+      const other = await seedDebt("debt-other");
+      await spend(seed, seed.savingsId, 60_000);
+      await spend(other, other.savingsId, 900_000);
+      await make(other, { toAccountId: other.savingsId, kind: "repayment", amount: 500_000 });
+
+      assert.equal(await getSavingsDebt(db, seed.householdId), 60_000);
+      assert.equal(await getSavingsDebt(db, other.householdId), 400_000);
+    });
   });
 });
