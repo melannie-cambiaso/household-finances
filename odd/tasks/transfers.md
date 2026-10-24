@@ -52,10 +52,11 @@ Branch: `feat/transfers`
 
 - L1 (user): "haz la limpieza y sigamos con la siguiente feature" — after the assistant listed "transferencias y deuda de ahorros" as what remained of the original idea.
 - L2 (user): chose "Transferencias + deuda" as the scope: the `/transfers` page with register, edit and delete, and the debt visible on the dashboard and on that page whenever it is above zero.
+- L3 (user): "comprabado que transferencias están funcionando correctamente en el navegador" — manual browser check of the transfers by the user. No details were given about the savings debt card, the error messages or the delete confirmation.
 
 ## Not verified
 
-- The authenticated flow in a browser: add a transfer, edit it pre-filled, the error messages (for example a repayment into a non-savings account), the delete confirmation, and the savings debt appearing on `/transfers` and on the dashboard once something is spent from a savings account. Needs the user's Google session. The services under the screens are integration-tested; the Server Actions, the form, the modal and the pages are only type-checked, built and checked for the unauthenticated redirect.
+- (Partly resolved) The author tried the transfers in the browser with their own session and reported that they work correctly. Not confirmed in detail: the savings debt appearing on `/transfers` and on the dashboard once something is spent from a savings account, the error messages, and the delete confirmation wording.
 - The debt card was never seen: with the real data the debt is 0 (the only expense came from Salary), so its visible branch is covered by the debt query tests but not by looking at the screen.
 - The access check of `createTransferAction`, `updateTransferAction` and `deleteTransferAction` on their own: the fake POST used to probe them is stopped by the access proxy before it reaches the action.
 - A failed delete is only logged, and the page shows no message.
