@@ -30,7 +30,7 @@ Branch: `feat/incomes`
 - [x] 1. Pure logic (`src/lib/incomes.ts`): input validation, pending-reimbursement math — test-first (S2, S4, S5)
 - [x] 2. Income service (`src/lib/income-service.ts`): household checks, related-expense rules, insert, list by month, list pending reimbursements — test-first with integration test (S1, S3)
 - [x] 3. Server Action and the `/incomes` page (form + month list + pending section) with a sidebar entry
-- [ ] 4. README and close
+- [x] 4. README and close
 
 ## Commits
 
