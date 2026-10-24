@@ -29,7 +29,7 @@ Branch: `feat/incomes`
 
 - [x] 1. Pure logic (`src/lib/incomes.ts`): input validation, pending-reimbursement math — test-first (S2, S4, S5)
 - [x] 2. Income service (`src/lib/income-service.ts`): household checks, related-expense rules, insert, list by month, list pending reimbursements — test-first with integration test (S1, S3)
-- [ ] 3. Server Action and the `/incomes` page (form + month list + pending section) with a sidebar entry
+- [x] 3. Server Action and the `/incomes` page (form + month list + pending section) with a sidebar entry
 - [ ] 4. README and close
 
 ## Commits
@@ -38,6 +38,7 @@ Branch: `feat/incomes`
 
 - Task 1: `ee4e4d4` feat: add income validation and pending reimbursement helpers. RED (module not found), GREEN 43/43 (8 new), tsc and lint clean.
 - Task 2: `c3d2f77` feat: add income service with household isolation. RED (module not found), GREEN 9/9 on a Neon branch copy with both migrations (`TEST_DATABASE_URL`): own-household insert, linked reimbursement, source/account/expense from another household rejected with no row inserted, non-reimbursement source and non-reimbursable expense rejected, month list scoped and newest first, pending list across months (partial, settled and over-paid handled). Cleanup verified: row counts identical before and after, 0 leftover test households. Full suite 58/58, tsc and lint clean.
+- Task 3: `8c8104a` feat: add incomes page with form, month list and pending reimbursements. tsc, lint, 58 tests and build PASS (`/incomes` is Partial Prerender). Production server: unauthenticated GET and direct POST to `/incomes` redirect to `/login`. The action, form and page are only type-checked, built and redirect-checked, not exercised with a session.
 
 ## Log
 
