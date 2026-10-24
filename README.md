@@ -91,3 +91,12 @@ The service tests for expenses and incomes run only when `TEST_DATABASE_URL` poi
 3. **Confirm.** Confirming locks the budget: it cannot be edited or reopened (the server refuses further saves, not just the UI). Expenses and incomes can still be recorded in any month.
 
 Under the budget, "Spending vs. budget" shows planned vs. spent per item and per category, and "Income vs. budget" shows planned vs. received per source, including reimbursement income. Spending or income with no line appears tagged "not planned". Amounts count toward the month they were assigned to, not the date they were paid.
+
+## Editing and deleting expenses and incomes
+
+Every expense in `/expenses` and every income in `/incomes` has **Edit** and **Delete** buttons. Both work in any month and whatever the state of that month's budget: a confirmed budget locks its planned lines, not the records of what actually happened.
+
+- **Edit** opens the same form used to add, pre-filled. An expense keeps the reimbursement percentage it was created with, so changing the amount or the date never rewrites history; the percentage is copied again only if you pick a different item. An expense that already has reimbursements linked to it cannot be moved to an item without a reimbursement percentage: unlink those incomes first. An income follows the same rules as when it was created (a reimbursement source can be linked only to a reimbursable expense).
+- **Delete** asks for confirmation first. Deleting an expense keeps the reimbursement incomes that were linked to it, as ordinary incomes. Deleting an income that covered an expense makes that expense pending again.
+
+Pending reimbursements and the budget progress are computed from the records, so they update by themselves after an edit or a delete. There is no undo and no history of changes.

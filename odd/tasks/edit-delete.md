@@ -31,7 +31,7 @@ Branch: `feat/edit-delete`
 - [x] 2. Income service: get one, update and delete — test-first with integration test (S4)
 - [x] 3. Expenses page: edit and delete from each row
 - [x] 4. Incomes page: edit and delete from each row
-- [ ] 5. README and close
+- [x] 5. README and close
 
 ## Commits
 
@@ -45,3 +45,11 @@ Branch: `feat/edit-delete`
 
 - L1 (user): "hagamos eso: editar y borrar gastos e ingresos" — after the assistant recommended it as the next feature because today a typo cannot be corrected.
 - L2 (user): chose "Desvincular y conservar" for deleting an expense that has linked reimbursement incomes.
+
+## Not verified
+
+- The authenticated flow in a browser: open Edit pre-filled, save a change, see the error messages, delete with the confirmation, and edit an income whose linked expense is already settled. Needs the user's Google session. The services under the screens are integration-tested; the Server Actions, forms, modals and pages are only type-checked, built and checked for the unauthenticated redirect.
+- The access check of `updateExpenseAction`, `deleteExpenseAction`, `updateIncomeAction` and `deleteIncomeAction` on their own: the fake POST used to probe them is stopped by the access proxy before it reaches the action.
+- Delete failures are only logged, and the page shows no message.
+- Concurrent edits of the same record (two people saving the same expense at once): the last save wins, and the row lock only serializes them.
+- The integration tests ran against a Neon branch copy, not a local Postgres.
