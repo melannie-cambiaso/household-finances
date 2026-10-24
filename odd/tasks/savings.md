@@ -34,7 +34,7 @@ Branch: `feat/savings`
 - T2 (S2, S5): additive migration with `opening_balance` and `opening_balance_on` on `accounts`. Applying it to the real database needs the user's explicit OK. Route: inline. File generated and committed in 9a68c4c, NOT applied to any database yet (see Not verified); tsc clean.
 - T3 (S1, S5, S6, S7): `src/lib/savings-service.ts`: set the opening balance, balance per account, movements for a month. Integration tests. Route: inline, test-first. Done, commit 3d311da: 15 integration tests plus 5 for the pure currentBalance, RED seen first (module not found); against the Neon test branch with 0002 applied there; full suite 205/205, tsc and lint clean; test data cleaned up.
 - T4 (S5, S6): Server Action, `/savings` page and sidebar entry. Route: inline. Done, commit c1e4981: tsc, lint and build pass; /savings is Partial Prerender; an unauthenticated GET, GET with a month and a fake direct POST all answer 307 to /login. NOT seen in a browser with a session.
-- T6 (S5, L6): the opening amount is the balance at the start of the opening day, so that day's movements count. Route: inline, test-first, on branch `fix/savings-opening-day`. Commit: pending.
+- T6 (S5, L6): the opening amount is the balance at the start of the opening day, so that day's movements count. Route: inline, test-first, on branch `fix/savings-opening-day`. Done, commit e788eef: 3 tests seen failing first, then 208/208 against the Neon test branch, tsc, lint and build pass.
 - T5: README section, `docs/data-model.md`, close with a "Not verified" list. Route: inline. Done in the docs commit below: README section, `docs/data-model.md` (two columns and the savings balance formula).
 
 ## Commits
@@ -44,6 +44,7 @@ Branch: `feat/savings`
 - 3d311da feat: derive savings balances and monthly statements (T3)
 - c1e4981 feat: add the savings page with opening balance and monthly statement (T4)
 - 9ca2ada docs: document the savings page and the opening balance (T5)
+- e788eef fix: count the movements of the opening day in the savings balance (T6)
 
 ## Log
 
