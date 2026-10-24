@@ -55,6 +55,7 @@ Branch: `feat/budget`
 
 - L1 (user): "Arranquemos con el presupuesto mensual" — the next feature after incomes; earlier described by the assistant as "copiar el mes anterior como borrador, confirmarlo para bloquearlo y ver el progreso contra lo presupuestado".
 - L2 (user): chose "Presupuesto + progreso" as the scope of the first delivery (page `/budget`: create or copy the month, edit draft amounts, confirm to lock, planned vs. actual by item and category for expenses and by source for incomes).
+- L3 (user): "ya lo probé y funciona perfecto" — manual browser check of `/budget` done by the user; no details given on which steps (create, edit, confirm, progress) were exercised.
 
 
 ## Not verified
@@ -64,4 +65,3 @@ Branch: `feat/budget`
 - Two simultaneous `createBudgetMonth` calls (the `ON CONFLICT DO NOTHING` path): reasoned, not raced.
 - Create and confirm are form actions that return nothing, so a failure is only logged and shown as an unchanged page.
 - The integration tests ran against a Neon branch copy, not a local Postgres.
-- L3 (user): "ya lo probé y funciona perfecto" — manual browser check of `/budget` done by the user; no details given on which steps (create, edit, confirm, progress) were exercised.
