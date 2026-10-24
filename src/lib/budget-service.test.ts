@@ -11,6 +11,7 @@ import {
   confirmBudgetMonth,
   createBudgetMonth,
   getBudgetMonth,
+  getBudgetProgress,
   saveBudgetLines,
 } from "./budget-service.ts";
 
@@ -108,6 +109,8 @@ describe("budget service", { skip: !url }, () => {
 
   after(async () => {
     // Children first, to respect the foreign keys.
+    await db.delete(schema.incomes).where(inArray(schema.incomes.householdId, householdIds));
+    await db.delete(schema.expenses).where(inArray(schema.expenses.householdId, householdIds));
     const months = await db
       .select({ id: schema.budgetMonths.id })
       .from(schema.budgetMonths)
@@ -142,6 +145,7 @@ describe("budget service", { skip: !url }, () => {
         .delete(schema.accounts)
         .where(eq(schema.accounts.householdId, householdId));
     }
+    await db.delete(schema.users).where(inArray(schema.users.householdId, householdIds));
     await db
       .delete(schema.households)
       .where(inArray(schema.households.id, householdIds));
@@ -241,6 +245,107 @@ describe("budget service", { skip: !url }, () => {
     assert.deepEqual(result, { ok: false, error: "invalid_month" });
     assert.equal(await getBudgetMonth(db, seed.householdId, "2026-10-15"), null);
     assert.equal(await getBudgetMonth(db, seed.householdId, "2026-10-01"), null);
+  });
+
+  describe("progress", () => {
+    async function spend(seed: Seed, itemId: string, budgetMonth: string, amount: number) {
+      const [user] = await db
+        .select({ id: schema.users.id })
+        .from(schema.users)
+        .where(eq(schema.users.householdId, seed.householdId));
+      const userId =
+        user?.id ??
+        (
+          await db
+            .insert(schema.users)
+            .values({
+              householdId: seed.householdId,
+              name: "t",
+              email: `t-${randomUUID()}@test.invalid`,
+            })
+            .returning()
+        )[0].id;
+      const [account] = await db
+        .select({ id: schema.accounts.id })
+        .from(schema.accounts)
+        .where(eq(schema.accounts.householdId, seed.householdId));
+      await db.insert(schema.expenses).values({
+        householdId: seed.householdId,
+        itemId,
+        accountId: account.id,
+        budgetMonth,
+        spentOn: budgetMonth,
+        amount,
+        createdBy: userId,
+      });
+      return { userId, accountId: account.id };
+    }
+
+    it("sums actual spending and income of the month against the planned lines", async () => {
+      const seed = await seedHousehold("progress");
+      await insertMonth(
+        seed,
+        "2026-10-01",
+        [
+          { itemId: seed.rentId, plannedAmount: 500_000 },
+          { incomeSourceId: seed.salaryId, plannedAmount: 1_500_000 },
+          { incomeSourceId: seed.refundId, plannedAmount: 40_000 },
+        ],
+        "draft",
+      );
+      const { userId, accountId } = await spend(seed, seed.rentId, "2026-10-01", 300_000);
+      await spend(seed, seed.rentId, "2026-10-01", 250_000);
+      await spend(seed, seed.foodId, "2026-10-01", 9_000); // no line: unplanned
+      await spend(seed, seed.rentId, "2026-11-01", 111); // another month: ignored
+      await db.insert(schema.incomes).values([
+        { householdId: seed.householdId, incomeSourceId: seed.salaryId, accountId, budgetMonth: "2026-10-01", receivedOn: "2026-10-28", amount: 1_500_000, createdBy: userId },
+        { householdId: seed.householdId, incomeSourceId: seed.refundId, accountId, budgetMonth: "2026-10-01", receivedOn: "2026-10-29", amount: 10_000, createdBy: userId },
+        { householdId: seed.householdId, incomeSourceId: seed.refundId, accountId, budgetMonth: "2026-11-01", receivedOn: "2026-11-02", amount: 99, createdBy: userId },
+      ]);
+
+      const report = await getBudgetProgress(db, seed.householdId, "2026-10-01");
+      assert.equal(report.categories.length, 1);
+      const home = report.categories[0];
+      assert.equal(home.name, "Home");
+      assert.deepEqual(
+        home.items.map((i) => [i.name, i.progress.planned, i.progress.actual, i.unplanned]),
+        [
+          ["Food", 0, 9_000, true],
+          ["Rent", 500_000, 550_000, false],
+        ],
+      );
+      assert.equal(home.progress.over, true);
+      assert.deepEqual(
+        report.sources.map((src) => [src.name, src.progress.planned, src.progress.actual]),
+        [
+          ["Refunds", 40_000, 10_000],
+          ["Salary", 1_500_000, 1_500_000],
+        ],
+      );
+      assert.equal(report.expenseTotal.actual, 559_000);
+      assert.equal(report.incomeTotal.actual, 1_510_000);
+    });
+
+    it("works for a month without a budget: everything is unplanned", async () => {
+      const seed = await seedHousehold("nobudget");
+      await spend(seed, seed.rentId, "2026-10-01", 1_000);
+      const report = await getBudgetProgress(db, seed.householdId, "2026-10-01");
+      assert.equal(report.categories[0].items[0].unplanned, true);
+      assert.equal(report.expenseTotal.planned, 0);
+      assert.deepEqual(report.sources, []);
+    });
+
+    it("never mixes in another household's spending or budget", async () => {
+      const mine = await seedHousehold("mine-progress");
+      const other = await seedHousehold("other-progress");
+      await insertMonth(other, "2026-10-01", [{ itemId: other.rentId, plannedAmount: 777 }], "draft");
+      await spend(other, other.rentId, "2026-10-01", 888);
+
+      const report = await getBudgetProgress(db, mine.householdId, "2026-10-01");
+      assert.deepEqual(report.categories, []);
+      assert.deepEqual(report.sources, []);
+      assert.equal(report.expenseTotal.actual, 0);
+    });
   });
 
   describe("save lines and confirm", () => {

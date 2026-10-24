@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  buildProgressReport,
   fridaysInMonth,
   parseBudgetForm,
   perFridayPlanned,
@@ -127,5 +128,83 @@ describe("progressOf", () => {
 
   it("is not over when nothing was planned or spent", () => {
     assert.equal(progressOf(0, 0).over, false);
+  });
+});
+
+describe("buildProgressReport", () => {
+  const items = [
+    { id: "rent", name: "Rent", categoryId: "home", categoryName: "Home" },
+    { id: "food", name: "Food", categoryId: "home", categoryName: "Home" },
+    { id: "doctor", name: "Doctor", categoryId: "health", categoryName: "Health" },
+    { id: "unused", name: "Unused", categoryId: "health", categoryName: "Health" },
+  ];
+  const sources = [
+    { id: "salary", name: "Salary", kind: "fixed" as const },
+    { id: "refunds", name: "Refunds", kind: "reimbursement" as const },
+    { id: "idle", name: "Idle", kind: "fixed" as const },
+  ];
+
+  const report = buildProgressReport({
+    items,
+    sources,
+    plannedByItem: { rent: 500_000, food: 100_000, doctor: 0 },
+    spentByItem: { rent: 500_000, food: 130_000, extra: 1, doctor: 20_000 },
+    plannedBySource: { salary: 1_500_000, refunds: 40_000 },
+    receivedBySource: { salary: 1_500_000, refunds: 10_000 },
+  });
+
+  it("groups items by category, sorted by name, summing each category", () => {
+    assert.deepEqual(
+      report.categories.map((c) => c.name),
+      ["Health", "Home"],
+    );
+    const home = report.categories.find((c) => c.name === "Home");
+    assert.deepEqual(
+      home?.items.map((i) => i.name),
+      ["Food", "Rent"],
+    );
+    assert.deepEqual(home?.progress, progressOf(600_000, 630_000));
+    assert.equal(home?.progress.over, true);
+  });
+
+  it("keeps an item that has a line of zero or only spending, and drops an untouched one", () => {
+    const health = report.categories.find((c) => c.name === "Health");
+    assert.deepEqual(
+      health?.items.map((i) => i.name),
+      ["Doctor"],
+    );
+    assert.equal(health?.items[0].unplanned, false); // a line of 0 is still planned
+  });
+
+  it("flags spending that has no line as unplanned", () => {
+    const withUnplanned = buildProgressReport({
+      items,
+      sources,
+      plannedByItem: {},
+      spentByItem: { food: 7_000 },
+      plannedBySource: {},
+      receivedBySource: {},
+    });
+    const food = withUnplanned.categories[0].items[0];
+    assert.equal(food.unplanned, true);
+    assert.deepEqual(food.progress, progressOf(0, 7_000));
+  });
+
+  it("ignores spending on ids that are not known items", () => {
+    const all = report.categories.flatMap((c) => c.items.map((i) => i.id));
+    assert.equal(all.includes("extra"), false);
+  });
+
+  it("reports income per source and omits sources with nothing planned or received", () => {
+    assert.deepEqual(
+      report.sources.map((s) => s.name),
+      ["Refunds", "Salary"],
+    );
+    assert.deepEqual(report.sources[0].progress, progressOf(40_000, 10_000));
+  });
+
+  it("totals expenses and incomes", () => {
+    assert.deepEqual(report.expenseTotal, progressOf(600_000, 650_000));
+    assert.deepEqual(report.incomeTotal, progressOf(1_540_000, 1_510_000));
   });
 });

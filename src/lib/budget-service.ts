@@ -1,8 +1,12 @@
-import { and, desc, eq, inArray, lt } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 import * as schema from "../db/schema.ts";
-import { perFridayPlanned, type BudgetLineInput } from "./budget.ts";
+import {
+  buildProgressReport,
+  perFridayPlanned,
+  type BudgetLineInput,
+} from "./budget.ts";
 import { isValidDate } from "./expenses.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway
@@ -291,4 +295,86 @@ export async function confirmBudgetMonth(
       ),
     );
   return existing ? { ok: true } : { ok: false, error: "month_not_found" };
+}
+
+/**
+ * Planned vs. actual for `month`: the budget lines (if the month has a budget)
+ * against the expenses and incomes that count toward that budget month. A month
+ * without a budget still reports its actual amounts, all as unplanned.
+ */
+export async function getBudgetProgress(
+  db: Db,
+  householdId: string,
+  month: string,
+) {
+  const [items, sources, budget, spent, received] = await Promise.all([
+    db
+      .select({
+        id: schema.items.id,
+        name: schema.items.name,
+        categoryId: schema.categories.id,
+        categoryName: schema.categories.name,
+      })
+      .from(schema.items)
+      .innerJoin(
+        schema.categories,
+        eq(schema.items.categoryId, schema.categories.id),
+      )
+      .where(eq(schema.categories.householdId, householdId)),
+    db
+      .select({
+        id: schema.incomeSources.id,
+        name: schema.incomeSources.name,
+        kind: schema.incomeSources.kind,
+      })
+      .from(schema.incomeSources)
+      .where(eq(schema.incomeSources.householdId, householdId)),
+    getBudgetMonth(db, householdId, month),
+    db
+      .select({
+        itemId: schema.expenses.itemId,
+        total: sql<number>`sum(${schema.expenses.amount})::float8`,
+      })
+      .from(schema.expenses)
+      .where(
+        and(
+          eq(schema.expenses.householdId, householdId),
+          eq(schema.expenses.budgetMonth, month),
+        ),
+      )
+      .groupBy(schema.expenses.itemId),
+    db
+      .select({
+        sourceId: schema.incomes.incomeSourceId,
+        total: sql<number>`sum(${schema.incomes.amount})::float8`,
+      })
+      .from(schema.incomes)
+      .where(
+        and(
+          eq(schema.incomes.householdId, householdId),
+          eq(schema.incomes.budgetMonth, month),
+        ),
+      )
+      .groupBy(schema.incomes.incomeSourceId),
+  ]);
+
+  const plannedByItem: Record<string, number> = {};
+  const plannedBySource: Record<string, number> = {};
+  for (const line of budget?.lines ?? []) {
+    if (line.itemId) plannedByItem[line.itemId] = line.plannedAmount;
+    if (line.incomeSourceId) {
+      plannedBySource[line.incomeSourceId] = line.plannedAmount;
+    }
+  }
+
+  return buildProgressReport({
+    items,
+    sources,
+    plannedByItem,
+    plannedBySource,
+    spentByItem: Object.fromEntries(spent.map((r) => [r.itemId, Number(r.total)])),
+    receivedBySource: Object.fromEntries(
+      received.map((r) => [r.sourceId, Number(r.total)]),
+    ),
+  });
 }
