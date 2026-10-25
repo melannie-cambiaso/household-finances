@@ -30,7 +30,7 @@ Branches: one per pull request, in this order (each one leaves `main` green): `r
 ## Tasks
 
 - T1 (S3, S5, S6): create `src/shared/` with the id, money and date helpers taken out of `expenses.ts`, split their tests, and point every import to it. Route: inline, test-first where behavior moves. Done, commit 0fab7a8: helpers cut out of expenses.ts into src/shared/{ids,money,dates}.ts, tests split into money.test.ts and dates.test.ts, 22 files rewired. A line-by-line comparison against the original found 0 code lines lost or added (only import lines differ); tsc, lint and the unit tests unchanged at 113 pass.
-- T2 (S2): move the generic `Modal` to `src/shared/ui/modal.tsx`. Route: inline. Commit: pending.
+- T2 (S2): move the generic `Modal` to `src/shared/ui/modal.tsx`. Route: inline. Done, commit 1172724: git sees a rename of modal.tsx; the 11 files that used it point to @/shared/ui/modal and no old reference is left; tsc and lint clean.
 - T3 (S2, S3): `accounts` (new) and `catalog`: move the files, take `listAccounts` and `listItems` out of the expense service. Route: inline. Commit: pending.
 - T4 (S2): `savings`. Route: inline. Commit: pending.
 - T5 (S2): `expenses`. Route: inline. Commit: pending.
@@ -43,6 +43,7 @@ Branches: one per pull request, in this order (each one leaves `main` green): `r
 ## Commits
 
 - 0fab7a8 refactor: move the id, money and date helpers to src/shared (T1)
+- 1172724 refactor: move the generic Modal to src/shared/ui (T2)
 
 ## Log
 
