@@ -8,7 +8,7 @@ import {
   type ItemFormState,
   type ItemFormValues,
 } from "./actions";
-import { useModalClose } from "../modal";
+import { useModalClose } from "@/shared/ui/modal";
 
 type CategoryOption = { id: string; name: string };
 

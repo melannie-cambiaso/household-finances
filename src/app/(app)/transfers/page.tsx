@@ -10,7 +10,7 @@ import { getSavingsDebt, listTransfers } from "@/lib/transfer-service";
 import { debtStanding, transferKindLabel } from "@/lib/transfers";
 import { getAllowedSession } from "@/lib/session";
 
-import { Modal } from "../modal";
+import { Modal } from "@/shared/ui/modal";
 import { DeleteTransferButton } from "./delete-transfer-button";
 import { TransferForm } from "./transfer-form";
 

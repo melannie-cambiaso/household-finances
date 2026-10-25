@@ -13,7 +13,7 @@ import {
 } from "@/lib/income-service";
 import { getAllowedSession } from "@/lib/session";
 
-import { Modal } from "../modal";
+import { Modal } from "@/shared/ui/modal";
 import { DeleteIncomeButton } from "./delete-income-button";
 import { IncomeForm } from "./income-form";
 

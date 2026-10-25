@@ -13,7 +13,7 @@ import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared
 import { expectedReimbursement } from "@/lib/expenses";
 import { getAllowedSession } from "@/lib/session";
 
-import { Modal } from "../modal";
+import { Modal } from "@/shared/ui/modal";
 import { DeleteExpenseButton } from "./delete-expense-button";
 import { ExpenseForm } from "./expense-form";
 

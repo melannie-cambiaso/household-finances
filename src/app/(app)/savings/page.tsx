@@ -8,7 +8,7 @@ import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared
 import { getSavingsOverview } from "@/lib/savings-service";
 import { getAllowedSession } from "@/lib/session";
 
-import { Modal } from "../modal";
+import { Modal } from "@/shared/ui/modal";
 import { OpeningBalanceForm } from "./opening-balance-form";
 
 const TIME_ZONE = "America/Santiago";
