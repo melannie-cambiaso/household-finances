@@ -32,8 +32,8 @@ Branch: `ci/github-actions`
 - T2 (S3, S4): `Build` job; the build run locally with fake variables. Route: inline. Done, commit 407620a: pnpm build passes locally with the six fake variables overriding .env (Next also loaded .env, so a build with no .env at all is only proven by the GitHub run); the YAML parses.
 - T3 (S3, S4): `Tests (Postgres)` job. It cannot be run locally; it is seen on GitHub. Route: inline. Done, commit 1c4f9b5: the YAML parses and the final guard was seen failing when the suites skip (the output shows them as SKIP). The job itself cannot run locally: it is seen on GitHub in T4.
 - T4 (S3, S4): push, open the pull request and watch the first run: the three jobs green. Route: inline. Done, commit 724d760: PR #17 opened. First run: Build and Tests (Postgres) green, Quality red on LayoutProps (generated route types missing in a fresh checkout), reproduced in a clean checkout and fixed with next typegen. Second run: Quality, Build and Tests (Postgres) all green; the Postgres job ran 211 tests with 0 skipped, both integration suites reported as run, and the migrations applied from an empty database.
-- T5 (S2, S5): the protection rule on `main` through the GitHub API, and a throwaway pull request with a failing test to see the merge blocked; it is closed and its branch deleted afterwards. Route: inline. Commit: none (repository setting).
-- T6: README section and close with a "Not verified" list. Route: inline. Commit: pending.
+- T5 (S2, S5): the protection rule on `main` through the GitHub API, and a throwaway pull request with a failing test to see the merge blocked; it is closed and its branch deleted afterwards. Route: inline. Done, no commit (repository setting). PR #17 was merged (72f3427) so the workflow was on main; the rule was applied with the GitHub API and read back (admin enforced, a pull request required with 0 approvals, the three checks bound to the GitHub Actions app, not up to date not required, no force push, no deletion). A throwaway pull request (#18) with a test that fails on purpose ended BLOCKED: Quality and Tests (Postgres) red, Build green, and `gh pr merge` was refused with "the base branch policy prohibits the merge". It was closed and its branch deleted; the broken test is not in main.
+- T6: README section and close with a "Not verified" list. Route: inline. Done in the docs pull request that carries this line: README section "Continuous integration".
 
 ## Commits
 
@@ -46,7 +46,11 @@ Branch: `ci/github-actions`
 
 - L1 (user): "podríamos implementar CI en este proyecto, para poder bloquear el merge si no pasa"
 - L2 (user): chose "Estricto, también para vos": no bypass for the admin.
+- L3 (user): chose "Sí, todo el flujo": merge #17, apply the rule and prove the block.
 
 ## Not verified
 
-(to fill when the feature closes)
+- The block was not tried with `gh pr merge --admin` on the failing pull request: the rule says `enforce_admins` is on (read back from GitHub), but merging a broken test into main to find out was not worth the risk.
+- That a GREEN pull request can still be merged once the rule is on is shown by the docs pull request that carries this very file; see its result in the pull request.
+- The actions are pinned by major version tag (`@v4`), not by commit SHA, so a moved tag changes what runs.
+- Nothing checks that the rule keeps matching the job names: renaming a job in ci.yml blocks every merge until the rule is updated (the README says so).

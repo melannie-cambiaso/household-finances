@@ -167,3 +167,33 @@ The page needs a starting point. For each savings account, use **Set opening bal
 - Changing the opening balance later moves every balance by the difference. There is no history of past values.
 
 Savings goals and account balances for Salary and Utilities are not part of this page.
+
+## Continuous integration
+
+Every pull request to `main`, and every push to it, runs the workflow in `.github/workflows/ci.yml` on GitHub Actions. It has three jobs, and `main` does not accept a merge until all three pass:
+
+- **`Quality`**: `pnpm lint`, the route types (`pnpm exec next typegen`), `pnpm exec tsc --noEmit` and the unit tests (`pnpm test` without a database).
+- **`Build`**: `pnpm build` with fake environment variables. They are plain values in the workflow, not secrets: the build never connects to the database.
+- **`Tests (Postgres)`**: a Postgres 17 that only lives during the run, the migrations applied to it from an empty database, and the full suite, integration tests included. A last step fails when the integration suites were skipped, because a skipped suite does not fail a run. It never touches the real database or a Neon branch.
+
+To run the same checks before pushing:
+
+```
+pnpm lint
+pnpm exec next typegen && pnpm exec tsc --noEmit
+pnpm test
+pnpm build
+TEST_DATABASE_URL=<a throwaway database with the migrations> pnpm test
+```
+
+`pnpm exec tsc --noEmit` only passes on a fresh checkout after `next typegen`: `LayoutProps` and the other route types are generated files, which `.next` already has on a machine that built before.
+
+### The protection rule of `main`
+
+It is a repository setting, not a file, so it is not in the diff of any pull request:
+
+- A pull request is required, with no approvals (a personal repository cannot approve its own), and the checks `Quality`, `Build` and `Tests (Postgres)` have to pass. The branch does not need to be up to date.
+- It applies to the admin too: there is no bypass. If GitHub Actions itself is down and a merge cannot wait, turn the rule off in Settings → Branches and turn it back on afterwards.
+- Force pushes to `main` and deleting it are refused.
+- The Vercel check is not required: it is a deploy preview, not a test.
+- **Renaming a job in `ci.yml` means updating the rule**, because it waits for those exact names; otherwise every merge stays blocked waiting for a check that no longer exists.
