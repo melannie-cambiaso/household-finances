@@ -7,6 +7,7 @@ import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { isAllowedEmail } from "@/lib/allowlist";
+import { EMAIL_NOT_ALLOWED } from "@/lib/auth-errors";
 
 // The household owns all data. With two members there is exactly one, created
 // the first time an allowed user signs in.
@@ -72,6 +73,9 @@ export const auth = betterAuth({
           if (!user || !isAllowedEmail(user.email, process.env.ALLOWED_EMAILS)) {
             throw new APIError("FORBIDDEN", {
               message: "This email is not allowed to sign in",
+              // With a code, Better Auth redirects to the error page instead of
+              // answering the browser with raw JSON.
+              code: EMAIL_NOT_ALLOWED,
             });
           }
         },
@@ -84,6 +88,9 @@ export const auth = betterAuth({
           if (!isAllowedEmail(user.email, process.env.ALLOWED_EMAILS)) {
             throw new APIError("FORBIDDEN", {
               message: "This email is not allowed to sign in",
+              // With a code, Better Auth redirects to the error page instead of
+              // answering the browser with raw JSON.
+              code: EMAIL_NOT_ALLOWED,
             });
           }
           return {
@@ -93,5 +100,6 @@ export const auth = betterAuth({
       },
     },
   },
+  onAPIError: { errorURL: "/login/error" },
   plugins: [nextCookies()],
 });
