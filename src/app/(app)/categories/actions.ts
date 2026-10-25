@@ -17,7 +17,7 @@ import {
   renameCategory,
   updateItem,
 } from "@/lib/catalog-service";
-import { UUID_PATTERN } from "@/lib/expenses";
+import { UUID_PATTERN } from "@/shared/ids";
 import { getAllowedSession } from "@/lib/session";
 
 export type CategoryFormState =

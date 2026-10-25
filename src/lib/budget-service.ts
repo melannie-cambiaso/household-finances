@@ -7,7 +7,7 @@ import {
   perFridayPlanned,
   type BudgetLineInput,
 } from "./budget.ts";
-import { isValidDate } from "./expenses.ts";
+import { isValidDate } from "../shared/dates.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway
 // Postgres. Relative imports keep it runnable by Node's native TypeScript support.

@@ -3,7 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 import * as schema from "../db/schema.ts";
-import { shiftMonth } from "./expenses.ts";
+import { shiftMonth } from "../shared/dates.ts";
 import type { TransferInput } from "./transfers.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway

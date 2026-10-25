@@ -1,7 +1,8 @@
 // Pure helpers for the monthly budget. No database or framework imports, so
 // they can be unit tested with Node's built-in runner.
 
-import { parseAmount, UUID_PATTERN } from "./expenses.ts";
+import { UUID_PATTERN } from "../shared/ids.ts";
+import { parseAmount } from "../shared/money.ts";
 
 const FRIDAY = 5;
 

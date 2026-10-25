@@ -3,13 +3,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { db } from "@/db";
-import {
-  formatClp,
-  formatMonthLabel,
-  parseMonthParam,
-  shiftMonth,
-  todayIn,
-} from "@/lib/expenses";
+import { formatClp } from "@/shared/money";
+import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { getSavingsOverview } from "@/lib/savings-service";
 import { getAllowedSession } from "@/lib/session";
 

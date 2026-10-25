@@ -4,13 +4,8 @@ import { Suspense } from "react";
 
 import { db } from "@/db";
 import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
-import {
-  formatClp,
-  formatMonthLabel,
-  parseMonthParam,
-  shiftMonth,
-  todayIn,
-} from "@/lib/expenses";
+import { formatClp } from "@/shared/money";
+import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { listPendingReimbursements } from "@/lib/income-service";
 import { getSavingsDebt } from "@/lib/transfer-service";
 import { debtStanding } from "@/lib/transfers";

@@ -11,7 +11,7 @@ import {
   saveBudgetLines,
   type SaveBudgetLinesResult,
 } from "@/lib/budget-service";
-import { isValidDate } from "@/lib/expenses";
+import { isValidDate } from "@/shared/dates";
 import { getAllowedSession } from "@/lib/session";
 
 export type BudgetFormState =

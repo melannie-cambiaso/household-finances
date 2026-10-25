@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { UUID_PATTERN } from "@/lib/expenses";
+import { UUID_PATTERN } from "@/shared/ids";
 import {
   createIncome,
   deleteIncome,

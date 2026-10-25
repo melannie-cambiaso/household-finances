@@ -6,13 +6,8 @@ import { db } from "@/db";
 import type { ProgressReport } from "@/lib/budget";
 import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
 import { listItems } from "@/lib/expense-service";
-import {
-  formatClp,
-  formatMonthLabel,
-  parseMonthParam,
-  shiftMonth,
-  todayIn,
-} from "@/lib/expenses";
+import { formatClp } from "@/shared/money";
+import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { listIncomeSources } from "@/lib/income-service";
 import { getAllowedSession } from "@/lib/session";
 

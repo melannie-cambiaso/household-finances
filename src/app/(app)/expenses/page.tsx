@@ -8,14 +8,9 @@ import {
   listExpenses,
   listItems,
 } from "@/lib/expense-service";
-import {
-  expectedReimbursement,
-  formatClp,
-  formatMonthLabel,
-  parseMonthParam,
-  shiftMonth,
-  todayIn,
-} from "@/lib/expenses";
+import { formatClp } from "@/shared/money";
+import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
+import { expectedReimbursement } from "@/lib/expenses";
 import { getAllowedSession } from "@/lib/session";
 
 import { Modal } from "../modal";

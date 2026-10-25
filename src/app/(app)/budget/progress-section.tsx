@@ -1,5 +1,5 @@
 import { barWidth, type Progress, type ProgressReport } from "@/lib/budget";
-import { formatClp } from "@/lib/expenses";
+import { formatClp } from "@/shared/money";
 
 export function Bar({ progress, tone }: { progress: Progress; tone: "expense" | "income" }) {
   // Spending past the plan is a warning; income past the plan is good news.
