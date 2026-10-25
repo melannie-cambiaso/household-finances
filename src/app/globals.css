@@ -44,3 +44,14 @@ body {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
+
+/*
+ * Tailwind v4 no longer gives buttons a pointer cursor. One rule here covers every
+ * button; being in the base layer, a utility class such as cursor-not-allowed still wins.
+ */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
