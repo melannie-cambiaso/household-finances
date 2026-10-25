@@ -11,11 +11,8 @@ import {
   type CreateExpenseResult,
   type UpdateExpenseResult,
 } from "@/lib/expense-service";
-import {
-  UUID_PATTERN,
-  validateExpenseInput,
-  type ExpenseField,
-} from "@/lib/expenses";
+import { UUID_PATTERN } from "@/shared/ids";
+import { validateExpenseInput, type ExpenseField } from "@/lib/expenses";
 import { getAllowedSession } from "@/lib/session";
 
 export type ExpenseFormValues = Record<ExpenseField, string>;

@@ -1,14 +1,10 @@
 // Pure helpers for incomes. No database or framework imports, so they can be
 // unit tested with Node's built-in runner.
 
-import {
-  expectedReimbursement,
-  firstOfMonth,
-  isValidDate,
-  isValidMonth,
-  parseAmount,
-  UUID_PATTERN,
-} from "./expenses.ts";
+import { UUID_PATTERN } from "../shared/ids.ts";
+import { parseAmount } from "../shared/money.ts";
+import { firstOfMonth, isValidDate, isValidMonth } from "../shared/dates.ts";
+import { expectedReimbursement } from "./expenses.ts";
 
 /** What is still owed for an expense: expected minus received, never below zero. */
 export function pendingReimbursement(

@@ -7,7 +7,7 @@ import {
   renameCategoryAction,
   type CategoryFormState,
 } from "./actions";
-import { useModalClose } from "../modal";
+import { useModalClose } from "@/shared/ui/modal";
 
 const initialState: CategoryFormState = { status: "idle" };
 

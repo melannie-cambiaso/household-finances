@@ -10,7 +10,7 @@ import {
   type TransferFormState,
   type TransferFormValues,
 } from "./actions";
-import { useModalClose } from "../modal";
+import { useModalClose } from "@/shared/ui/modal";
 
 type AccountOption = { id: string; name: string };
 

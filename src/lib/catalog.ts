@@ -1,7 +1,7 @@
 // Pure helpers for categories and items. No database or framework imports, so
 // they can be unit tested with Node's built-in runner.
 
-import { UUID_PATTERN } from "./expenses.ts";
+import { UUID_PATTERN } from "../shared/ids.ts";
 
 export const NAME_MAX_LENGTH = 60;
 

@@ -4,13 +4,8 @@ import { Suspense } from "react";
 
 import { db } from "@/db";
 import { listAccounts } from "@/lib/expense-service";
-import {
-  formatClp,
-  formatMonthLabel,
-  parseMonthParam,
-  shiftMonth,
-  todayIn,
-} from "@/lib/expenses";
+import { formatClp } from "@/shared/money";
+import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import {
   listIncomes,
   listIncomeSources,
@@ -18,7 +13,7 @@ import {
 } from "@/lib/income-service";
 import { getAllowedSession } from "@/lib/session";
 
-import { Modal } from "../modal";
+import { Modal } from "@/shared/ui/modal";
 import { DeleteIncomeButton } from "./delete-income-button";
 import { IncomeForm } from "./income-form";
 

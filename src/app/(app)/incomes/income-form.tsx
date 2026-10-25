@@ -8,7 +8,7 @@ import {
   type IncomeFormState,
   type IncomeFormValues,
 } from "./actions";
-import { useModalClose } from "../modal";
+import { useModalClose } from "@/shared/ui/modal";
 
 type SourceOption = {
   id: string;

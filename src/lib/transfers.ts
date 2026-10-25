@@ -1,7 +1,9 @@
 // Pure helpers for transfers. No database or framework imports, so they can be
 // unit tested with Node's built-in runner.
 
-import { isValidDate, parseAmount, UUID_PATTERN } from "./expenses.ts";
+import { UUID_PATTERN } from "../shared/ids.ts";
+import { parseAmount } from "../shared/money.ts";
+import { isValidDate } from "../shared/dates.ts";
 
 export const TRANSFER_KINDS = ["repayment", "funding", "other"] as const;
 export type TransferKind = (typeof TRANSFER_KINDS)[number];

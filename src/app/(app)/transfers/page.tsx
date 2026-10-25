@@ -4,18 +4,13 @@ import { Suspense } from "react";
 
 import { db } from "@/db";
 import { listAccounts } from "@/lib/expense-service";
-import {
-  formatClp,
-  formatMonthLabel,
-  parseMonthParam,
-  shiftMonth,
-  todayIn,
-} from "@/lib/expenses";
+import { formatClp } from "@/shared/money";
+import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { getSavingsDebt, listTransfers } from "@/lib/transfer-service";
 import { debtStanding, transferKindLabel } from "@/lib/transfers";
 import { getAllowedSession } from "@/lib/session";
 
-import { Modal } from "../modal";
+import { Modal } from "@/shared/ui/modal";
 import { DeleteTransferButton } from "./delete-transfer-button";
 import { TransferForm } from "./transfer-form";
 

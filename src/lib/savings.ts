@@ -1,12 +1,8 @@
 // Pure helpers for the savings page. No database or framework imports, so they
 // can be unit tested with Node's built-in runner.
 
-import {
-  isValidDate,
-  parseAmount,
-  firstOfMonth,
-  shiftMonth,
-} from "./expenses.ts";
+import { parseAmount } from "../shared/money.ts";
+import { isValidDate, firstOfMonth, shiftMonth } from "../shared/dates.ts";
 
 export type OpeningBalance = {
   /** Whole CLP saved on the opening date. May be zero. */
