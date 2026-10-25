@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { SignOutButton } from "./sign-out-button";
 
@@ -22,34 +23,68 @@ function isActive(pathname: string, href: string) {
 
 export function Sidebar() {
   const pathname = usePathname();
+  // Only matters below the md breakpoint: from md up the menu is always shown.
+  const [open, setOpen] = useState(false);
 
   return (
-    <aside className="flex w-full flex-col gap-4 border-b border-line bg-sidebar p-4 md:min-h-screen md:w-60 md:shrink-0 md:border-r md:border-b-0">
-      <p className="px-2 py-3 text-xl">Household finances</p>
+    <aside className="sticky top-0 z-20 flex max-h-dvh w-full flex-col gap-4 border-b border-line bg-sidebar p-4 md:h-dvh md:w-60 md:shrink-0 md:border-r md:border-b-0">
+      <div className="flex items-center justify-between">
+        <p className="px-2 py-3 text-xl">Household finances</p>
+        <button
+          type="button"
+          className="rounded-xl border border-line p-2 text-muted transition-colors hover:bg-surface hover:text-text md:hidden"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+          aria-controls="main-menu"
+          onClick={() => setOpen((value) => !value)}
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="size-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            {open ? (
+              <path d="M6 6l12 12M18 6L6 18" />
+            ) : (
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            )}
+          </svg>
+        </button>
+      </div>
 
-      <nav aria-label="Main" className="flex gap-2 md:flex-col">
-        {NAV_ITEMS.map((item) => {
-          const active = isActive(pathname, item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-colors ${
-                active
-                  ? "bg-accent-soft text-accent"
-                  : "text-muted hover:bg-surface hover:text-text"
-              }`}
-            >
-              <span aria-hidden="true">{item.icon}</span>
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <div
+        id="main-menu"
+        className={`${open ? "flex" : "hidden"} min-h-0 flex-col gap-4 md:flex md:flex-1`}
+      >
+        <nav aria-label="Main" className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+          {NAV_ITEMS.map((item) => {
+            const active = isActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-colors ${
+                  active
+                    ? "bg-accent-soft text-accent"
+                    : "text-muted hover:bg-surface hover:text-text"
+                }`}
+              >
+                <span aria-hidden="true">{item.icon}</span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="mt-auto">
-        <SignOutButton />
+        <div className="mt-auto shrink-0">
+          <SignOutButton />
+        </div>
       </div>
     </aside>
   );
