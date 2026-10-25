@@ -370,6 +370,22 @@ describe("transfer service", { skip: !url }, () => {
       assert.equal(await getSavingsDebt(db, seed.householdId), 110_000);
     });
 
+    it("is raised by funding transfers out of savings into another account", async () => {
+      const seed = await seedDebt("debt-funding-out");
+      await spend(seed, seed.savingsId, 100_000);
+
+      await make(seed, { fromAccountId: seed.savingsId, toAccountId: seed.salaryId, kind: "funding", amount: 40_000 });
+      assert.equal(await getSavingsDebt(db, seed.householdId), 140_000);
+
+      // Other kinds out of savings do not make the household owe savings.
+      await make(seed, { fromAccountId: seed.savingsId, toAccountId: seed.salaryId, kind: "other", amount: 15_000 });
+      assert.equal(await getSavingsDebt(db, seed.householdId), 140_000);
+
+      // A repayment back into savings pays it down.
+      await make(seed, { toAccountId: seed.savingsId, kind: "repayment", amount: 90_000 });
+      assert.equal(await getSavingsDebt(db, seed.householdId), 50_000);
+    });
+
     it("goes negative when more was repaid than spent, and is derived, not stored", async () => {
       const seed = await seedDebt("debt-derived");
       await spend(seed, seed.savingsId, 100_000);

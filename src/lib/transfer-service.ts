@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
@@ -199,7 +199,8 @@ export async function listTransfers(
 }
 
 /**
- * What the household owes its savings: everything spent from savings accounts
+ * What the household owes its savings: everything spent from savings accounts,
+ * plus the funding transfers that left a savings account for a non-savings one,
  * minus the repayments that ended in a savings account. Over all time, derived
  * on every call and never stored. It is negative when more was repaid than
  * spent; callers decide to show it only when it is above zero.
@@ -241,5 +242,25 @@ export async function getSavingsDebt(
       ),
     );
 
-  return Number(spent.total) - Number(repaid.total);
+  // Money lent out of savings: a funding transfer from a savings account to any
+  // other kind of account. Moving money between two savings accounts owes nothing.
+  const fromAccount = alias(schema.accounts, "from_account");
+  const toAccount = alias(schema.accounts, "to_account");
+  const [lent] = await db
+    .select({
+      total: sql<number>`coalesce(sum(${schema.transfers.amount}), 0)::float8`,
+    })
+    .from(schema.transfers)
+    .innerJoin(fromAccount, eq(schema.transfers.fromAccountId, fromAccount.id))
+    .innerJoin(toAccount, eq(schema.transfers.toAccountId, toAccount.id))
+    .where(
+      and(
+        eq(schema.transfers.householdId, householdId),
+        eq(schema.transfers.kind, "funding"),
+        eq(fromAccount.kind, "savings"),
+        ne(toAccount.kind, "savings"),
+      ),
+    );
+
+  return Number(spent.total) + Number(lent.total) - Number(repaid.total);
 }
