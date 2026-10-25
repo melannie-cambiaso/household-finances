@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# screenshot tooling: the saved login session is a credential, never commit it
+/.auth/
+/.shots/

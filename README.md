@@ -62,6 +62,19 @@ Some tests need a real Postgres and are skipped unless `TEST_DATABASE_URL` is se
 TEST_DATABASE_URL=postgres://user@localhost:5432/scratch pnpm test
 ```
 
+### Screenshots
+
+Take screenshots of the running app (a phone and a desktop size), for example to check a layout:
+
+```bash
+pnpm shots:login   # once: opens Chrome, sign in with Google, then close the window
+pnpm shots         # saves the pages to .shots/ (start `pnpm dev` first)
+pnpm shots /expenses /   # only some pages (in Git Bash use MSYS_NO_PATHCONV=1)
+pnpm shots --menu        # also the phone view with the hamburger menu open
+```
+
+It uses your installed Chrome and a profile kept in `.auth/`. That folder holds a signed-in session, so it is gitignored: never commit or share it. Close Chrome before running `pnpm shots`, because the profile cannot be shared with an open window. Set `SHOTS_URL` to point at another address.
+
 ## Styling
 
 The look (warm dark theme, rounded handwritten-style font, rounded cards, pill buttons, left sidebar) was approximated by eye from a screenshot of a previous project. All colors, radii and fonts are design tokens in `src/app/globals.css` (`@theme`), and components use semantic names such as `bg-surface`, `text-muted`, `text-income` and `rounded-card`, so the whole look is tuned from that one file. The fonts are loaded in `src/app/layout.tsx`. The theme is dark only. Signed-in pages live in the `(app)` route group and share the sidebar in `src/app/(app)/sidebar.tsx`; add an entry to `NAV_ITEMS` when a page ships.
