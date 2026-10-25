@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --test src/**/*.test.ts",
+    "test:db": "node scripts/test-db.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/db/seed.mts"
