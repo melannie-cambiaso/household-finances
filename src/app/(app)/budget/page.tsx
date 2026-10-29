@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { db } from "@/db";
-import type { ProgressReport } from "@/lib/budget";
+import { plannedTotals, type ProgressReport } from "@/lib/budget";
 import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
 import { listItems } from "@/lib/expense-service";
 import { formatClp } from "@/shared/money";
@@ -182,6 +182,7 @@ function ConfirmedBudget({
 }) {
   const plannedItems = items.filter((item) => `item:${item.id}` in planned);
   const plannedSources = sources.filter((s) => `source:${s.id}` in planned);
+  const totals = plannedTotals(planned);
 
   return (
     <>
@@ -196,7 +197,12 @@ function ConfirmedBudget({
       <ProgressSection report={report} />
 
       <section className="rounded-card border border-line bg-surface p-6">
-        <h2 className="mb-4 text-xl">Planned spending</h2>
+        <h2 className="mb-4 flex flex-wrap items-baseline justify-between gap-2 text-xl">
+          Planned spending
+          <span className="font-numeric font-bold text-expense">
+            {formatClp(totals.spending)}
+          </span>
+        </h2>
         {plannedItems.length === 0 ? (
           <p className="text-muted">Nothing planned.</p>
         ) : (
@@ -216,7 +222,12 @@ function ConfirmedBudget({
       </section>
 
       <section className="rounded-card border border-line bg-surface p-6">
-        <h2 className="mb-4 text-xl">Planned income</h2>
+        <h2 className="mb-4 flex flex-wrap items-baseline justify-between gap-2 text-xl">
+          Planned income
+          <span className="font-numeric font-bold text-income">
+            {formatClp(totals.income)}
+          </span>
+        </h2>
         {plannedSources.length === 0 ? (
           <p className="text-muted">Nothing planned.</p>
         ) : (
