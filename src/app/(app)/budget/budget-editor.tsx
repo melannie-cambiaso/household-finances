@@ -1,6 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+
+import { plannedTotals } from "@/lib/budget";
+import { formatClp } from "@/shared/money";
 
 import { saveBudgetAction, type BudgetFormState } from "./actions";
 
@@ -44,6 +47,10 @@ export function BudgetEditor({
   // After a failed save the form shows what the user typed, not the saved value.
   const valueOf = (name: string) => typed?.[name] ?? planned[name] ?? "";
 
+  // What is currently in the fields, so the totals follow what is being typed.
+  const [edited, setEdited] = useState<Record<string, string>>({});
+  const totals = plannedTotals({ ...planned, ...typed, ...edited });
+
   const row = (name: string, label: string) => (
     <li key={name} className="flex items-center justify-between gap-4">
       <label htmlFor={name} className="min-w-0 truncate">
@@ -72,11 +79,23 @@ export function BudgetEditor({
   );
 
   return (
-    <form action={formAction} className="grid gap-6">
+    <form
+      action={formAction}
+      className="grid gap-6"
+      onInput={(event) => {
+        const field = event.target as HTMLInputElement;
+        setEdited((current) => ({ ...current, [field.name]: field.value }));
+      }}
+    >
       <input type="hidden" name="month" value={month} />
 
       <section className="rounded-card border border-line bg-surface p-6">
-        <h2 className="mb-1 text-xl">Planned spending</h2>
+        <h2 className="mb-1 flex flex-wrap items-baseline justify-between gap-2 text-xl">
+          Planned spending
+          <span className="font-numeric font-bold text-expense">
+            {formatClp(totals.spending)}
+          </span>
+        </h2>
         <p className="mb-4 text-sm text-muted">
           Leave an amount blank to plan nothing for that item. A 0 is a plan of
           zero.
@@ -94,7 +113,12 @@ export function BudgetEditor({
       </section>
 
       <section className="rounded-card border border-line bg-surface p-6">
-        <h2 className="mb-4 text-xl">Planned income</h2>
+        <h2 className="mb-4 flex flex-wrap items-baseline justify-between gap-2 text-xl">
+          Planned income
+          <span className="font-numeric font-bold text-income">
+            {formatClp(totals.income)}
+          </span>
+        </h2>
         <ul className="grid gap-2">
           {sources.map((source) => row(`source:${source.id}`, source.name))}
         </ul>

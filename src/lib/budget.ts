@@ -32,6 +32,26 @@ export type BudgetLineInput = {
   plannedAmount: number;
 };
 
+/**
+ * Totals of the planned amounts in the budget form, as the user is typing them.
+ * Fields are keyed `item:<id>` (spending) or `source:<id>` (income). Blank or
+ * invalid text counts as nothing, as it does when saving.
+ */
+export function plannedTotals(fields: Record<string, string>): {
+  spending: number;
+  income: number;
+} {
+  const totals = { spending: 0, income: 0 };
+  for (const [name, raw] of Object.entries(fields)) {
+    const match = FIELD_PATTERN.exec(name);
+    if (!match) continue;
+    const amount = parseAmount(raw.trim()) ?? 0;
+    if (match[1] === "item") totals.spending += amount;
+    else totals.income += amount;
+  }
+  return totals;
+}
+
 export type BudgetFormParse =
   | { ok: true; lines: BudgetLineInput[] }
   // Keyed by the form field name (`item:<id>` / `source:<id>`).

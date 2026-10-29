@@ -7,6 +7,7 @@ import {
   fridaysInMonth,
   parseBudgetForm,
   perFridayPlanned,
+  plannedTotals,
   progressOf,
 } from "./budget.ts";
 
@@ -224,5 +225,40 @@ describe("barWidth", () => {
 
   it("is empty when nothing was spent against a plan", () => {
     assert.equal(barWidth(progressOf(100_000, 0)), 0);
+  });
+});
+
+describe("plannedTotals", () => {
+  it("sums spending and income separately, by field prefix", () => {
+    assert.deepEqual(
+      plannedTotals({
+        "item:a": "100",
+        "item:b": "250",
+        "source:x": "1000",
+      }),
+      { spending: 350, income: 1000 },
+    );
+  });
+
+  it("reads the Chilean thousands format the form accepts", () => {
+    assert.deepEqual(plannedTotals({ "item:a": "1.500.000", "source:x": "2.961.617" }), {
+      spending: 1_500_000,
+      income: 2_961_617,
+    });
+  });
+
+  it("counts blanks, zeros and invalid text as nothing", () => {
+    assert.deepEqual(
+      plannedTotals({ "item:a": "", "item:b": "0", "item:c": "abc", "source:x": "  " }),
+      { spending: 0, income: 0 },
+    );
+  });
+
+  it("is zero without fields, and ignores fields that are not item or source", () => {
+    assert.deepEqual(plannedTotals({}), { spending: 0, income: 0 });
+    assert.deepEqual(plannedTotals({ month: "500", "other:a": "9" }), {
+      spending: 0,
+      income: 0,
+    });
   });
 });
