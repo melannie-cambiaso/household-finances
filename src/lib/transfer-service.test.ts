@@ -341,7 +341,11 @@ describe("transfer service", { skip: !url }, () => {
       // Other month, between non-savings accounts, between savings accounts: ignored.
       await make(seed, { fromAccountId: seed.savingsId, toAccountId: seed.salaryId, amount: 5_000, madeOn: "2026-11-02" });
       await make(seed, { amount: 7_000 });
-      await make(seed, { fromAccountId: seed.savingsId, toAccountId: seed.savingsId, amount: 11_000 });
+      const [otherSavings] = await db
+        .insert(schema.accounts)
+        .values({ householdId: seed.householdId, name: "Savings 2", kind: "savings" })
+        .returning();
+      await make(seed, { fromAccountId: seed.savingsId, toAccountId: otherSavings.id, amount: 11_000 });
 
       assert.deepEqual(await getSavingsNetEffect(db, seed.householdId, "2026-10-01"), {
         spentFromSavings: 100_000,
