@@ -89,3 +89,27 @@ export function debtStanding(debt: number): DebtStanding {
   if (debt < 0) return { kind: "credit", amount: -debt };
   return { kind: "even" };
 }
+
+export type SavingsNetEffect = {
+  spentFromSavings: number;
+  movedOutOfSavings: number;
+  movedIntoSavings: number;
+};
+
+/**
+ * The month's net outside savings: money in minus money out, where what was
+ * paid from savings does not count as money out, money moved out of savings
+ * counts as money in, and money moved into savings counts as money out.
+ */
+export function monthlyNet(
+  income: number,
+  spending: number,
+  savings: SavingsNetEffect,
+): number {
+  return (
+    income -
+    (spending - savings.spentFromSavings) +
+    savings.movedOutOfSavings -
+    savings.movedIntoSavings
+  );
+}

@@ -12,6 +12,7 @@ import {
   createTransfer,
   deleteTransfer,
   getSavingsDebt,
+  getSavingsNetEffect,
   getTransfer,
   listTransfers,
   updateTransfer,
@@ -328,6 +329,26 @@ describe("transfer service", { skip: !url }, () => {
         createdBy: seed.userId,
       });
     }
+
+    it("net effect: follows the money across the savings boundary, per month", async () => {
+      const seed = await seedDebt("net-effect");
+      await spend(seed, seed.savingsId, 100_000); // paid from savings
+      await spend(seed, seed.salaryId, 30_000); // not from savings
+      await make(seed, { fromAccountId: seed.savingsId, toAccountId: seed.salaryId, amount: 80_000 });
+      await make(seed, { fromAccountId: seed.savingsId, toAccountId: seed.salaryId, kind: "other", amount: 9_000 });
+      await make(seed, { fromAccountId: seed.salaryId, toAccountId: seed.savingsId, amount: 400_000 });
+      await make(seed, { fromAccountId: seed.salaryId, toAccountId: seed.savingsId, kind: "repayment", amount: 20_000 });
+      // Other month, between non-savings accounts, between savings accounts: ignored.
+      await make(seed, { fromAccountId: seed.savingsId, toAccountId: seed.salaryId, amount: 5_000, madeOn: "2026-11-02" });
+      await make(seed, { amount: 7_000 });
+      await make(seed, { fromAccountId: seed.savingsId, toAccountId: seed.savingsId, amount: 11_000 });
+
+      assert.deepEqual(await getSavingsNetEffect(db, seed.householdId, "2026-10-01"), {
+        spentFromSavings: 100_000,
+        movedOutOfSavings: 89_000,
+        movedIntoSavings: 420_000,
+      });
+    });
 
     it("is zero when nothing was spent from savings", async () => {
       const seed = await seedDebt("debt-zero");

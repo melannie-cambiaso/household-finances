@@ -7,8 +7,8 @@ import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { listPendingReimbursements } from "@/lib/income-service";
-import { getSavingsDebt } from "@/lib/transfer-service";
-import { debtStanding } from "@/lib/transfers";
+import { getSavingsDebt, getSavingsNetEffect } from "@/lib/transfer-service";
+import { debtStanding, monthlyNet } from "@/lib/transfers";
 import { getAllowedSession } from "@/lib/session";
 
 import { Bar, Figures } from "./budget/progress-section";
@@ -62,19 +62,21 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
     today,
   );
 
-  const [report, budget, pending, debt] = await Promise.all([
+  const [report, budget, pending, debt, savingsEffect] = await Promise.all([
     getBudgetProgress(db, householdId, month),
     getBudgetMonth(db, householdId, month),
     listPendingReimbursements(db, householdId),
     getSavingsDebt(db, householdId),
+    getSavingsNetEffect(db, householdId, month),
   ]);
   const standing = debtStanding(debt);
 
   const income = report.incomeTotal;
   const spending = report.expenseTotal;
-  // Money in minus money out for the month. It is not an account balance:
-  // transfers between accounts are not recorded yet.
-  const net = income.actual - spending.actual;
+  // Money in minus money out for the month, outside savings: expenses paid
+  // from savings do not lower it, money moved out of savings raises it and money
+  // moved into savings lowers it. It is not an account balance.
+  const net = monthlyNet(income.actual, spending.actual, savingsEffect);
   const pendingTotal = pending.reduce((sum, row) => sum + row.pending, 0);
   const monthLabel = formatMonthLabel(month);
 
@@ -185,8 +187,9 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
             {formatClp(Math.abs(net))}
           </p>
           <p className="mt-1 text-sm text-muted">
-            Received minus spent in {monthLabel}. This is not an account
-            balance.
+            Received minus spent in {monthLabel}, leaving out what was paid
+            from savings and counting the money moved into or out of savings.
+            This is not an account balance.
           </p>
         </section>
 

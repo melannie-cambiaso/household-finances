@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   debtStanding,
+  monthlyNet,
   transferKindLabel,
   validateTransferInput,
 } from "./transfers.ts";
@@ -115,5 +116,38 @@ describe("debtStanding", () => {
 
   it("is nothing when savings are exactly even", () => {
     assert.deepEqual(debtStanding(0), { kind: "even" });
+  });
+});
+
+describe("monthlyNet", () => {
+  const none = { spentFromSavings: 0, movedOutOfSavings: 0, movedIntoSavings: 0 };
+
+  it("is income minus spending when savings did nothing", () => {
+    assert.equal(monthlyNet(1_000, 400, none), 600);
+    assert.equal(monthlyNet(100, 400, none), -300);
+  });
+
+  it("does not count what was spent from savings", () => {
+    assert.equal(monthlyNet(1_000, 400, { ...none, spentFromSavings: 150 }), 750);
+  });
+
+  it("adds money moved out of savings", () => {
+    assert.equal(monthlyNet(1_000, 400, { ...none, movedOutOfSavings: 105 }), 705);
+  });
+
+  it("subtracts money moved into savings", () => {
+    assert.equal(monthlyNet(1_000, 400, { ...none, movedIntoSavings: 400 }), 200);
+  });
+
+  it("combines everything at once", () => {
+    // Savings -> Salary 30k + 30k + 45.203 moved out, Salary -> Savings 400k moved in.
+    assert.equal(
+      monthlyNet(3_000_000, 2_000_000, {
+        spentFromSavings: 50_000,
+        movedOutOfSavings: 105_203,
+        movedIntoSavings: 400_000,
+      }),
+      755_203,
+    );
   });
 });
