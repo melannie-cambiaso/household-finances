@@ -4,7 +4,7 @@ import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 import * as schema from "../db/schema.ts";
 import { shiftMonth } from "../shared/dates.ts";
-import type { TransferInput } from "./transfers.ts";
+import type { SavingsNetEffect, TransferInput } from "./transfers.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway
 // Postgres. Relative imports keep it runnable by Node's native TypeScript support.
@@ -263,4 +263,65 @@ export async function getSavingsDebt(
     );
 
   return Number(spent.total) + Number(lent.total) - Number(repaid.total);
+}
+
+/**
+ * What savings did to the month's net, which only follows the money outside
+ * savings: what was spent from savings accounts (by budget month) must not
+ * lower it, money moved out of savings into any other kind of account raises it,
+ * and money moved into savings lowers it (transfers by date, any kind). Moves
+ * between two savings accounts, or between two non-savings accounts, change nothing.
+ */
+export async function getSavingsNetEffect(
+  db: Db,
+  householdId: string,
+  month: string,
+): Promise<SavingsNetEffect> {
+  const [spent] = await db
+    .select({
+      total: sql<number>`coalesce(sum(${schema.expenses.amount}), 0)::float8`,
+    })
+    .from(schema.expenses)
+    .innerJoin(
+      schema.accounts,
+      eq(schema.expenses.accountId, schema.accounts.id),
+    )
+    .where(
+      and(
+        eq(schema.expenses.householdId, householdId),
+        eq(schema.expenses.budgetMonth, month),
+        eq(schema.accounts.kind, "savings"),
+      ),
+    );
+
+  const fromAccount = alias(schema.accounts, "from_account");
+  const toAccount = alias(schema.accounts, "to_account");
+  const moved = async (
+    fromIsSavings: boolean,
+  ): Promise<number> => {
+    const [row] = await db
+      .select({
+        total: sql<number>`coalesce(sum(${schema.transfers.amount}), 0)::float8`,
+      })
+      .from(schema.transfers)
+      .innerJoin(fromAccount, eq(schema.transfers.fromAccountId, fromAccount.id))
+      .innerJoin(toAccount, eq(schema.transfers.toAccountId, toAccount.id))
+      .where(
+        and(
+          eq(schema.transfers.householdId, householdId),
+          fromIsSavings
+            ? and(eq(fromAccount.kind, "savings"), ne(toAccount.kind, "savings"))
+            : and(ne(fromAccount.kind, "savings"), eq(toAccount.kind, "savings")),
+          gte(schema.transfers.madeOn, month),
+          lt(schema.transfers.madeOn, shiftMonth(month, 1)),
+        ),
+      );
+    return Number(row.total);
+  };
+
+  return {
+    spentFromSavings: Number(spent.total),
+    movedOutOfSavings: await moved(true),
+    movedIntoSavings: await moved(false),
+  };
 }
