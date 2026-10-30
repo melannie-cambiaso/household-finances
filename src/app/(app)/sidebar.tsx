@@ -9,6 +9,7 @@ import { SignOutButton } from "./sign-out-button";
 // Only pages that exist are listed; add an entry here when a new page ships.
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: "🏠" },
+  { href: "/accounts", label: "Accounts", icon: "🏦" },
   { href: "/expenses", label: "Expenses", icon: "💸" },
   { href: "/incomes", label: "Incomes", icon: "💰" },
   { href: "/budget", label: "Budget", icon: "📊" },
