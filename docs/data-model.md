@@ -148,6 +148,9 @@ Month progress, per item:    planned (budget_lines) vs sum(expenses.amount) for 
 Month progress, per category: sum over its items
 Income progress:             planned income lines vs sum(incomes.amount) for that budget_month
 Account balance:             sum(incomes) - sum(expenses) +/- transfers, per account
+Account net (month):         incomes in + transfers in - transfers out - expenses, per account; incomes and
+                             expenses by budget_month, transfers by made_on (no opening balance needed);
+                             Salary and Utilities only, Savings has its own page
 Savings balance:             opening_balance + incomes in + transfers in - transfers out - expenses,
                              all dated from opening_balance_on on and up to today, per savings account
 
