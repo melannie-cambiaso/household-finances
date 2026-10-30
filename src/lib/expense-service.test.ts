@@ -218,6 +218,41 @@ describe("expense service", { skip: !url }, () => {
     assert.equal(rows[1].reimbursementPct, 70);
   });
 
+  it("lists expenses of the same day in the order they were added, last one first", async () => {
+    const ctx = { householdId: mine.householdId, userId: mine.userId };
+    const ids = { itemId: mine.itemId, accountId: mine.accountId };
+    for (const amount of [101, 102, 103, 104, 105, 106]) {
+      await createExpense(db, ctx, {
+        ...base,
+        ...ids,
+        budgetMonth: "2026-09-01",
+        spentOn: "2026-09-15",
+        amount,
+      });
+    }
+    // A later day goes above, whatever the order they were added in.
+    await createExpense(db, ctx, {
+      ...base,
+      ...ids,
+      budgetMonth: "2026-09-01",
+      spentOn: "2026-09-16",
+      amount: 107,
+    });
+    await createExpense(db, ctx, {
+      ...base,
+      ...ids,
+      budgetMonth: "2026-09-01",
+      spentOn: "2026-09-14",
+      amount: 100,
+    });
+
+    const rows = await listExpenses(db, mine.householdId, "2026-09-01");
+    assert.deepEqual(
+      rows.map((r) => r.amount),
+      [107, 106, 105, 104, 103, 102, 101, 100],
+    );
+  });
+
   it("lists items and accounts of the household only", async () => {
     const items = await listItems(db, mine.householdId);
     assert.deepEqual(

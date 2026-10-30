@@ -256,6 +256,10 @@ export const expenses = pgTable(
     createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id),
+    // When it was recorded: orders the expenses of the same day.
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     check("expenses_amount_positive", sql`${t.amount} > 0`),

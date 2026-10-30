@@ -68,7 +68,10 @@ export async function createExpense(
   return { ok: true, id: created.id };
 }
 
-/** Expenses that count toward `budgetMonth` (first day of the month), newest first. */
+/**
+ * Expenses that count toward `budgetMonth` (first day of the month), newest first:
+ * by the day they were paid and, within a day, by when they were recorded.
+ */
 export async function listExpenses(
   db: Db,
   householdId: string,
@@ -104,7 +107,11 @@ export async function listExpenses(
         eq(schema.expenses.budgetMonth, budgetMonth),
       ),
     )
-    .orderBy(desc(schema.expenses.spentOn), asc(schema.expenses.id));
+    .orderBy(
+      desc(schema.expenses.spentOn),
+      desc(schema.expenses.createdAt),
+      asc(schema.expenses.id),
+    );
 }
 
 /** Items the household can record spending against, grouped by category name. */
