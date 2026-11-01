@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { db } from "@/db";
 import { listCatalog } from "@/features/catalog/service";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 import { deleteCategoryAction, deleteItemAction } from "./actions";
 import { CategoryForm } from "./category-form";

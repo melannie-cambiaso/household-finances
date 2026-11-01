@@ -13,7 +13,7 @@ import {
 } from "@/features/expenses/service";
 import { UUID_PATTERN } from "@/shared/ids";
 import { validateExpenseInput, type ExpenseField } from "@/features/expenses/rules";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 export type ExpenseFormValues = Record<ExpenseField, string>;
 

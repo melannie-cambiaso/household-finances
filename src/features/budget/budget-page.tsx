@@ -9,7 +9,7 @@ import { listItems } from "@/features/catalog/service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { listIncomeSources } from "@/features/incomes/service";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 import { confirmBudgetAction, createBudgetAction } from "./actions";
 import { BudgetEditor } from "./budget-editor";

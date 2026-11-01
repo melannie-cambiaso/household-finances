@@ -12,7 +12,7 @@ import {
   type SaveBudgetLinesResult,
 } from "@/features/budget/service";
 import { isValidDate } from "@/shared/dates";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 export type BudgetFormState =
   | { status: "idle" }

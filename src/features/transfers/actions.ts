@@ -13,7 +13,7 @@ import {
   type UpdateTransferResult,
 } from "@/features/transfers/service";
 import { validateTransferInput, type TransferField } from "@/features/transfers/rules";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 export type TransferFormValues = Record<TransferField, string>;
 

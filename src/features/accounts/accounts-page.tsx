@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { getAccountNets } from "@/features/accounts/service";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 const TIME_ZONE = "America/Santiago";
 

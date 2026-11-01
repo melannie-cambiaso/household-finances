@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { EMAIL_NOT_ALLOWED, signInErrorMessage } from "./auth-errors.ts";
+import { EMAIL_NOT_ALLOWED, signInErrorMessage } from "./errors.ts";
 
 describe("signInErrorMessage", () => {
   it("explains that the email is not allowed", () => {
