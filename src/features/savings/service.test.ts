@@ -8,7 +8,7 @@ import postgres from "postgres";
 
 import * as schema from "../../db/schema.ts";
 import { getSavingsOverview, setOpeningBalance } from "./service.ts";
-import { getSavingsDebt } from "../../lib/transfer-service.ts";
+import { getSavingsDebt } from "../transfers/service.ts";
 
 // Integration test: needs a Postgres with the migrations applied.
 // Run with TEST_DATABASE_URL pointing at a throwaway database; skipped otherwise.

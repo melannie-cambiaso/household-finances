@@ -4,37 +4,37 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import {
-  createExpense,
-  deleteExpense,
-  updateExpense,
-  type CreateExpenseResult,
-  type UpdateExpenseResult,
-} from "@/lib/expense-service";
 import { UUID_PATTERN } from "@/shared/ids";
-import { validateExpenseInput, type ExpenseField } from "@/lib/expenses";
+import {
+  createIncome,
+  deleteIncome,
+  updateIncome,
+  type CreateIncomeResult,
+  type UpdateIncomeResult,
+} from "@/features/incomes/service";
+import { validateIncomeInput, type IncomeField } from "@/features/incomes/rules";
 import { getAllowedSession } from "@/lib/session";
 
-export type ExpenseFormValues = Record<ExpenseField, string>;
+export type IncomeFormValues = Record<IncomeField, string>;
 
-export type ExpenseFormState =
+export type IncomeFormState =
   | { status: "idle" }
   | { status: "success" }
   | {
       status: "error";
       message?: string;
-      errors: Partial<Record<ExpenseField, string>>;
+      errors: Partial<Record<IncomeField, string>>;
       // Echoed back so the form keeps what the user typed.
-      values: ExpenseFormValues;
+      values: IncomeFormValues;
     };
 
-const FIELDS: ExpenseField[] = [
-  "itemId",
+const FIELDS: IncomeField[] = [
+  "incomeSourceId",
   "accountId",
   "amount",
-  "spentOn",
+  "receivedOn",
   "budgetMonth",
-  "description",
+  "relatedExpenseId",
 ];
 
 function readText(formData: FormData, name: string): string {
@@ -42,12 +42,45 @@ function readText(formData: FormData, name: string): string {
   return typeof value === "string" ? value : "";
 }
 
+function emptyValues(): IncomeFormValues {
+  return {
+    incomeSourceId: "",
+    accountId: "",
+    amount: "",
+    receivedOn: "",
+    budgetMonth: "",
+    relatedExpenseId: "",
+  };
+}
+
+const ERROR_MESSAGES: Record<
+  Extract<CreateIncomeResult, { ok: false }>["error"],
+  string
+> = {
+  // One message for a missing source, account or expense: do not reveal
+  // whether an id exists in another household.
+  source_not_found: "That source, account or expense is not available",
+  account_not_found: "That source, account or expense is not available",
+  expense_not_found: "That source, account or expense is not available",
+  source_not_reimbursement:
+    "Only a reimbursement source can be linked to an expense",
+  expense_not_reimbursable: "That expense is not reimbursable",
+};
+
+const UPDATE_MESSAGES: Record<
+  Extract<UpdateIncomeResult, { ok: false }>["error"],
+  string
+> = {
+  ...ERROR_MESSAGES,
+  income_not_found: "That income no longer exists",
+};
+
 // Server Actions can be called with a direct POST, so this re-checks the
 // session. The household and the author come from the session, never the form.
-export async function createExpenseAction(
-  _previous: ExpenseFormState,
+export async function createIncomeAction(
+  _previous: IncomeFormState,
   formData: FormData,
-): Promise<ExpenseFormState> {
+): Promise<IncomeFormState> {
   const session = await getAllowedSession();
   if (!session) redirect("/login");
 
@@ -63,16 +96,16 @@ export async function createExpenseAction(
 
   const values = Object.fromEntries(
     FIELDS.map((field) => [field, readText(formData, field)]),
-  ) as ExpenseFormValues;
+  ) as IncomeFormValues;
 
-  const validation = validateExpenseInput(values);
+  const validation = validateIncomeInput(values);
   if (!validation.ok) {
     return { status: "error", errors: validation.errors, values };
   }
 
-  let result: CreateExpenseResult;
+  let result: CreateIncomeResult;
   try {
-    result = await createExpense(
+    result = await createIncome(
       db,
       { householdId, userId: session.user.id },
       validation.value,
@@ -80,49 +113,33 @@ export async function createExpenseAction(
   } catch (error) {
     // A database failure should show a message in the form, not an error page,
     // and keep what the user typed.
-    console.error("Failed to save an expense", error);
+    console.error("Failed to save an income", error);
     return {
       status: "error",
-      message: "Could not save the expense. Try again.",
+      message: "Could not save the income. Try again.",
       errors: {},
       values,
     };
   }
   if (!result.ok) {
-    // Same message for a missing item and a missing account: do not reveal
-    // whether an id exists in another household.
     return {
       status: "error",
-      message: "That item or account is not available",
+      message: ERROR_MESSAGES[result.error],
       errors: {},
       values,
     };
   }
 
-  revalidatePath("/expenses");
+  revalidatePath("/incomes");
   return { status: "success" };
 }
 
-const UPDATE_MESSAGES: Record<
-  Extract<UpdateExpenseResult, { ok: false }>["error"],
-  string
-> = {
-  expense_not_found: "That expense no longer exists",
-  // Same message for a missing item and a missing account: do not reveal
-  // whether an id exists in another household.
-  item_not_found: "That item or account is not available",
-  account_not_found: "That item or account is not available",
-  has_linked_incomes:
-    "This expense has reimbursements linked to it, so it must keep an item with a reimbursement percentage. Unlink those incomes first.",
-};
-
-// Same checks as creating: the session is re-verified and the household comes
-// from it. The expense id comes from the form, so the service only touches it
-// when it belongs to the household.
-export async function updateExpenseAction(
-  _previous: ExpenseFormState,
+// Same checks as creating. The income id comes from the form, so the service
+// only touches it when it belongs to the household.
+export async function updateIncomeAction(
+  _previous: IncomeFormState,
   formData: FormData,
-): Promise<ExpenseFormState> {
+): Promise<IncomeFormState> {
   const session = await getAllowedSession();
   if (!session) redirect("/login");
 
@@ -138,33 +155,33 @@ export async function updateExpenseAction(
 
   const values = Object.fromEntries(
     FIELDS.map((field) => [field, readText(formData, field)]),
-  ) as ExpenseFormValues;
+  ) as IncomeFormValues;
 
-  const id = readText(formData, "expenseId");
+  const id = readText(formData, "incomeId");
   if (!UUID_PATTERN.test(id)) {
     return {
       status: "error",
-      message: UPDATE_MESSAGES.expense_not_found,
+      message: UPDATE_MESSAGES.income_not_found,
       errors: {},
       values,
     };
   }
 
-  const validation = validateExpenseInput(values);
+  const validation = validateIncomeInput(values);
   if (!validation.ok) {
     return { status: "error", errors: validation.errors, values };
   }
 
-  let result: UpdateExpenseResult;
+  let result: UpdateIncomeResult;
   try {
-    result = await updateExpense(
+    result = await updateIncome(
       db,
       { householdId, userId: session.user.id },
       id,
       validation.value,
     );
   } catch (error) {
-    console.error("Failed to update an expense", error);
+    console.error("Failed to update an income", error);
     return {
       status: "error",
       message: "Could not save the changes. Try again.",
@@ -181,39 +198,26 @@ export async function updateExpenseAction(
     };
   }
 
-  // The pending-reimbursement view and the budget progress read expenses too.
-  revalidatePath("/expenses");
+  // Pending reimbursements and the budget progress read incomes too.
   revalidatePath("/incomes");
   revalidatePath("/budget");
   return { status: "success" };
 }
 
-export async function deleteExpenseAction(formData: FormData): Promise<void> {
+export async function deleteIncomeAction(formData: FormData): Promise<void> {
   const session = await getAllowedSession();
   if (!session) redirect("/login");
   const householdId = session.user.householdId;
   if (!householdId) return;
 
-  const id = readText(formData, "expenseId");
+  const id = readText(formData, "incomeId");
   if (!UUID_PATTERN.test(id)) return;
 
   try {
-    await deleteExpense(db, householdId, id);
+    await deleteIncome(db, householdId, id);
   } catch (error) {
-    console.error("Failed to delete an expense", error);
+    console.error("Failed to delete an income", error);
   }
-  revalidatePath("/expenses");
   revalidatePath("/incomes");
   revalidatePath("/budget");
-}
-
-function emptyValues(): ExpenseFormValues {
-  return {
-    itemId: "",
-    accountId: "",
-    amount: "",
-    spentOn: "",
-    budgetMonth: "",
-    description: "",
-  };
 }
