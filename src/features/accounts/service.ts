@@ -2,9 +2,9 @@ import { and, asc, eq, gte, lt, ne, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import * as schema from "../db/schema.ts";
-import { shiftMonth } from "../shared/dates.ts";
-import { accountNet, type AccountFlows } from "./account-nets.ts";
+import * as schema from "../../db/schema.ts";
+import { shiftMonth } from "../../shared/dates.ts";
+import { accountNet, type AccountFlows } from "./rules.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway
 // Postgres. Relative imports keep it runnable by Node's native TypeScript support.
@@ -104,4 +104,16 @@ export async function getAccountNets(
     };
     return { ...account, ...flows, net: accountNet(flows) };
   });
+}
+
+export async function listAccounts(db: Db, householdId: string) {
+  return db
+    .select({
+      id: schema.accounts.id,
+      name: schema.accounts.name,
+      kind: schema.accounts.kind,
+    })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.householdId, householdId))
+    .orderBy(asc(schema.accounts.name));
 }

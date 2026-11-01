@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { db } from "@/db";
-import { listAccounts } from "@/lib/expense-service";
+import { listAccounts } from "@/features/accounts/service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import {

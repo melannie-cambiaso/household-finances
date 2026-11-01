@@ -114,36 +114,6 @@ export async function listExpenses(
     );
 }
 
-/** Items the household can record spending against, grouped by category name. */
-export async function listItems(db: Db, householdId: string) {
-  return db
-    .select({
-      id: schema.items.id,
-      name: schema.items.name,
-      categoryName: schema.categories.name,
-      reimbursementPct: schema.items.reimbursementPct,
-    })
-    .from(schema.items)
-    .innerJoin(
-      schema.categories,
-      eq(schema.items.categoryId, schema.categories.id),
-    )
-    .where(eq(schema.categories.householdId, householdId))
-    .orderBy(asc(schema.categories.name), asc(schema.items.name));
-}
-
-export async function listAccounts(db: Db, householdId: string) {
-  return db
-    .select({
-      id: schema.accounts.id,
-      name: schema.accounts.name,
-      kind: schema.accounts.kind,
-    })
-    .from(schema.accounts)
-    .where(eq(schema.accounts.householdId, householdId))
-    .orderBy(asc(schema.accounts.name));
-}
-
 /** One expense of the household, as the edit form needs it; null if it is not theirs. */
 export async function getExpense(db: Db, householdId: string, id: string) {
   const [row] = await db

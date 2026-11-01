@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { db } from "@/db";
 import { plannedTotals, type ProgressReport } from "@/lib/budget";
 import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
-import { listItems } from "@/lib/expense-service";
+import { listItems } from "@/features/catalog/service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { listIncomeSources } from "@/lib/income-service";

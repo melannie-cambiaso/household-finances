@@ -1,8 +1,8 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import * as schema from "../db/schema.ts";
-import { sameName, type ItemInput } from "./catalog.ts";
+import * as schema from "../../db/schema.ts";
+import { sameName, type ItemInput } from "./rules.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway
 // Postgres. Relative imports keep it runnable by Node's native TypeScript support.
@@ -340,4 +340,22 @@ export async function listCatalog(db: Db, householdId: string) {
       .filter((item) => item.categoryId === category.id)
       .sort(byName),
   }));
+}
+
+/** Items the household can record spending against, grouped by category name. */
+export async function listItems(db: Db, householdId: string) {
+  return db
+    .select({
+      id: schema.items.id,
+      name: schema.items.name,
+      categoryName: schema.categories.name,
+      reimbursementPct: schema.items.reimbursementPct,
+    })
+    .from(schema.items)
+    .innerJoin(
+      schema.categories,
+      eq(schema.items.categoryId, schema.categories.id),
+    )
+    .where(eq(schema.categories.householdId, householdId))
+    .orderBy(asc(schema.categories.name), asc(schema.items.name));
 }

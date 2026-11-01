@@ -3,11 +3,9 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { db } from "@/db";
-import {
-  listAccounts,
-  listExpenses,
-  listItems,
-} from "@/lib/expense-service";
+import { listAccounts } from "@/features/accounts/service";
+import { listItems } from "@/features/catalog/service";
+import { listExpenses } from "@/lib/expense-service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { expectedReimbursement } from "@/lib/expenses";
