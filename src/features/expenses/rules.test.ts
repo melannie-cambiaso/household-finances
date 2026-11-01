@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { expectedReimbursement, validateExpenseInput } from "./expenses.ts";
+import { expectedReimbursement, validateExpenseInput } from "./rules.ts";
 
 const UUID_A = "11111111-1111-4111-8111-111111111111";
 const UUID_B = "22222222-2222-4222-8222-222222222222";

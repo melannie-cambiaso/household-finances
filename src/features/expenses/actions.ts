@@ -10,9 +10,9 @@ import {
   updateExpense,
   type CreateExpenseResult,
   type UpdateExpenseResult,
-} from "@/lib/expense-service";
+} from "@/features/expenses/service";
 import { UUID_PATTERN } from "@/shared/ids";
-import { validateExpenseInput, type ExpenseField } from "@/lib/expenses";
+import { validateExpenseInput, type ExpenseField } from "@/features/expenses/rules";
 import { getAllowedSession } from "@/lib/session";
 
 export type ExpenseFormValues = Record<ExpenseField, string>;

@@ -2,7 +2,7 @@ import { and, asc, desc, eq, isNotNull, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 import * as schema from "../db/schema.ts";
-import { expectedReimbursement } from "./expenses.ts";
+import { expectedReimbursement } from "../features/expenses/rules.ts";
 import { pendingReimbursement, type IncomeInput } from "./incomes.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway

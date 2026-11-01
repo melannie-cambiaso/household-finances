@@ -1,9 +1,9 @@
 // Pure helpers for expenses. No database or framework imports, so they can be
 // unit tested with Node's built-in runner.
 
-import { UUID_PATTERN } from "../shared/ids.ts";
-import { firstOfMonth, isValidDate, isValidMonth } from "../shared/dates.ts";
-import { parseAmount } from "../shared/money.ts";
+import { UUID_PATTERN } from "../../shared/ids.ts";
+import { firstOfMonth, isValidDate, isValidMonth } from "../../shared/dates.ts";
+import { parseAmount } from "../../shared/money.ts";
 
 const DESCRIPTION_MAX_LENGTH = 200;
 
