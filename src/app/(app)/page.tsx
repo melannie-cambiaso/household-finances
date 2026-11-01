@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { db } from "@/db";
-import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
+import { getBudgetMonth, getBudgetProgress } from "@/features/budget/service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { listPendingReimbursements } from "@/features/incomes/service";
@@ -12,7 +12,7 @@ import { getSavingsDebt } from "@/features/transfers/service";
 import { debtStanding } from "@/features/transfers/rules";
 import { getAllowedSession } from "@/lib/session";
 
-import { Bar, Figures } from "./budget/progress-section";
+import { Bar, Figures } from "@/features/budget/progress-section";
 
 const TIME_ZONE = "America/Santiago";
 

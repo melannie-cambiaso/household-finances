@@ -4,13 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { parseBudgetForm } from "@/lib/budget";
+import { parseBudgetForm } from "@/features/budget/rules";
 import {
   confirmBudgetMonth,
   createBudgetMonth,
   saveBudgetLines,
   type SaveBudgetLinesResult,
-} from "@/lib/budget-service";
+} from "@/features/budget/service";
 import { isValidDate } from "@/shared/dates";
 import { getAllowedSession } from "@/lib/session";
 
