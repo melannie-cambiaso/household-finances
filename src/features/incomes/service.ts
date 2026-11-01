@@ -1,9 +1,9 @@
 import { and, asc, desc, eq, isNotNull, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import * as schema from "../db/schema.ts";
-import { expectedReimbursement } from "../features/expenses/rules.ts";
-import { pendingReimbursement, type IncomeInput } from "./incomes.ts";
+import * as schema from "../../db/schema.ts";
+import { expectedReimbursement } from "../expenses/rules.ts";
+import { pendingReimbursement, type IncomeInput } from "./rules.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway
 // Postgres. Relative imports keep it runnable by Node's native TypeScript support.

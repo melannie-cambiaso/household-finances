@@ -8,7 +8,7 @@ import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
 import { listItems } from "@/features/catalog/service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
-import { listIncomeSources } from "@/lib/income-service";
+import { listIncomeSources } from "@/features/incomes/service";
 import { getAllowedSession } from "@/lib/session";
 
 import { confirmBudgetAction, createBudgetAction } from "./actions";

@@ -11,8 +11,8 @@ import {
   updateIncome,
   type CreateIncomeResult,
   type UpdateIncomeResult,
-} from "@/lib/income-service";
-import { validateIncomeInput, type IncomeField } from "@/lib/incomes";
+} from "@/features/incomes/service";
+import { validateIncomeInput, type IncomeField } from "@/features/incomes/rules";
 import { getAllowedSession } from "@/lib/session";
 
 export type IncomeFormValues = Record<IncomeField, string>;

@@ -6,7 +6,7 @@ import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import * as schema from "../db/schema.ts";
+import * as schema from "../../db/schema.ts";
 import {
   createIncome,
   deleteIncome,
@@ -15,7 +15,7 @@ import {
   listIncomeSources,
   listPendingReimbursements,
   updateIncome,
-} from "./income-service.ts";
+} from "./service.ts";
 
 // Integration test: needs a Postgres with the migrations applied.
 // Run with TEST_DATABASE_URL pointing at a throwaway database; skipped otherwise.
