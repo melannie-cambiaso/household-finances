@@ -6,7 +6,7 @@ import {
   monthStatement,
   validateOpeningBalance,
   type Movement,
-} from "./savings.ts";
+} from "./rules.ts";
 
 const TODAY = "2026-10-24";
 

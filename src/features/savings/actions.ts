@@ -6,11 +6,11 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { UUID_PATTERN } from "@/shared/ids";
 import { todayIn } from "@/shared/dates";
-import { validateOpeningBalance, type OpeningBalanceField } from "@/lib/savings";
+import { validateOpeningBalance, type OpeningBalanceField } from "@/features/savings/rules";
 import {
   setOpeningBalance,
   type SetOpeningBalanceResult,
-} from "@/lib/savings-service";
+} from "@/features/savings/service";
 import { getAllowedSession } from "@/lib/session";
 
 const TIME_ZONE = "America/Santiago";
