@@ -2,9 +2,9 @@ import { and, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import * as schema from "../db/schema.ts";
-import { shiftMonth } from "../shared/dates.ts";
-import type { SavingsNetEffect, TransferInput } from "./transfers.ts";
+import * as schema from "../../db/schema.ts";
+import { shiftMonth } from "../../shared/dates.ts";
+import type { SavingsNetEffect, TransferInput } from "./rules.ts";
 
 // Takes the database as a parameter so it can be tested against a throwaway
 // Postgres. Relative imports keep it runnable by Node's native TypeScript support.

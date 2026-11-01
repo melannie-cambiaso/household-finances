@@ -11,8 +11,8 @@ import {
   updateTransfer,
   type CreateTransferResult,
   type UpdateTransferResult,
-} from "@/lib/transfer-service";
-import { validateTransferInput, type TransferField } from "@/lib/transfers";
+} from "@/features/transfers/service";
+import { validateTransferInput, type TransferField } from "@/features/transfers/rules";
 import { getAllowedSession } from "@/lib/session";
 
 export type TransferFormValues = Record<TransferField, string>;

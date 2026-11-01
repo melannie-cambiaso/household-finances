@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 
-import { TRANSFER_KINDS, transferKindLabel } from "@/lib/transfers";
+import { TRANSFER_KINDS, transferKindLabel } from "@/features/transfers/rules";
 
 import {
   createTransferAction,
