@@ -7,8 +7,9 @@ import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { listPendingReimbursements } from "@/lib/income-service";
-import { getSavingsDebt, getSavingsNetEffect } from "@/lib/transfer-service";
-import { debtStanding, monthlyNet } from "@/lib/transfers";
+import { getAccountNets } from "@/lib/account-nets-service";
+import { getSavingsDebt } from "@/lib/transfer-service";
+import { debtStanding } from "@/lib/transfers";
 import { getAllowedSession } from "@/lib/session";
 
 import { Bar, Figures } from "./budget/progress-section";
@@ -62,21 +63,17 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
     today,
   );
 
-  const [report, budget, pending, debt, savingsEffect] = await Promise.all([
+  const [report, budget, pending, debt, accounts] = await Promise.all([
     getBudgetProgress(db, householdId, month),
     getBudgetMonth(db, householdId, month),
     listPendingReimbursements(db, householdId),
     getSavingsDebt(db, householdId),
-    getSavingsNetEffect(db, householdId, month),
+    getAccountNets(db, householdId, month),
   ]);
   const standing = debtStanding(debt);
 
   const income = report.incomeTotal;
   const spending = report.expenseTotal;
-  // Money in minus money out for the month, outside savings: expenses paid
-  // from savings do not lower it, money moved out of savings raises it and money
-  // moved into savings lowers it. It is not an account balance.
-  const net = monthlyNet(income.actual, spending.actual, savingsEffect);
   const pendingTotal = pending.reduce((sum, row) => sum + row.pending, 0);
   const monthLabel = formatMonthLabel(month);
 
@@ -178,22 +175,42 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
           </Link>
         </section>
 
-        <section className={cardClass}>
-          <h2 className="mb-1 text-xl">Net of the month</h2>
-          <p
-            className={`font-numeric text-3xl font-bold ${net < 0 ? "text-expense" : "text-income"}`}
+        <section className={`${cardClass} md:col-span-2`}>
+          <h2 className="mb-3 text-xl">Accounts</h2>
+          {accounts.length === 0 ? (
+            <p className="text-muted">There are no accounts yet.</p>
+          ) : (
+            <ul className="grid gap-3">
+              {accounts.map((account) => (
+                <li
+                  key={account.id}
+                  className="flex items-baseline justify-between gap-3"
+                >
+                  <span>{account.name}</span>
+                  <span
+                    className={`font-numeric text-2xl font-bold ${
+                      account.net < 0 ? "text-expense" : "text-income"
+                    }`}
+                  >
+                    {account.net < 0 ? "−" : ""}
+                    {formatClp(Math.abs(account.net))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-sm text-muted">
+            What each account gained or lost in {monthLabel}.
+          </p>
+          <Link
+            href={`/accounts?month=${month.slice(0, 7)}`}
+            className="mt-4 inline-block text-sm underline"
           >
-            {net < 0 && "-"}
-            {formatClp(Math.abs(net))}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Received minus spent in {monthLabel}, leaving out what was paid
-            from savings and counting the money moved into or out of savings.
-            This is not an account balance.
-          </p>
+            See accounts
+          </Link>
         </section>
 
-        <section className={cardClass}>
+        <section className={`${cardClass} md:col-span-2`}>
           <h2 className="mb-2 text-xl">Budget</h2>
           {!budget ? (
             <>
