@@ -4,6 +4,7 @@ Shared household finance app for two people. Built with Next.js, Drizzle ORM and
 
 - Stack decisions: [`docs/stack.md`](docs/stack.md)
 - Data model: [`docs/data-model.md`](docs/data-model.md)
+- Code layout: [`docs/architecture.md`](docs/architecture.md)
 
 ## Setup
 
