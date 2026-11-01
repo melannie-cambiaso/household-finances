@@ -26,7 +26,7 @@ Every feature uses the same file names, so you always know where to look:
 
 Features: `accounts`, `auth`, `budget`, `catalog` (the `/categories` page), `dashboard` (the home page), `expenses`, `incomes`, `savings`, `transfers`.
 
-Exceptions: `dashboard` is only a page, and `auth` has its own file names (`allowlist`, `errors`, `server`, `client`, `session`, `sign-out-button`, `login-page`, `login-error-page`) because it is not a data feature.
+Exceptions: `accounts` has no `actions.ts` because it only reads data, `dashboard` is only a page, and `auth` has its own file names (`allowlist`, `errors`, `server`, `client`, `session`, `sign-out-button`, `login-page`, `login-error-page`) because it is not a data feature.
 
 ## Routes
 
