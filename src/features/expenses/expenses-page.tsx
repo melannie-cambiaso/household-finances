@@ -9,7 +9,7 @@ import { listExpenses } from "@/features/expenses/service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { expectedReimbursement } from "@/features/expenses/rules";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 import { Modal } from "@/shared/ui/modal";
 import { DeleteExpenseButton } from "./delete-expense-button";

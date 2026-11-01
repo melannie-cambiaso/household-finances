@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 
-import { plannedTotals } from "@/lib/budget";
+import { plannedTotals } from "@/features/budget/rules";
 import { formatClp } from "@/shared/money";
 
 import { saveBudgetAction, type BudgetFormState } from "./actions";

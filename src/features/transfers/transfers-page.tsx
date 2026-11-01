@@ -8,7 +8,7 @@ import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { getSavingsDebt, listTransfers } from "@/features/transfers/service";
 import { debtStanding, transferKindLabel } from "@/features/transfers/rules";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 import { Modal } from "@/shared/ui/modal";
 import { DeleteTransferButton } from "./delete-transfer-button";

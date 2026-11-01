@@ -13,7 +13,7 @@ import {
   type UpdateIncomeResult,
 } from "@/features/incomes/service";
 import { validateIncomeInput, type IncomeField } from "@/features/incomes/rules";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 export type IncomeFormValues = Record<IncomeField, string>;
 

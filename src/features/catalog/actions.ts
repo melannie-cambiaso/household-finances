@@ -18,7 +18,7 @@ import {
   updateItem,
 } from "@/features/catalog/service";
 import { UUID_PATTERN } from "@/shared/ids";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 export type CategoryFormState =
   | { status: "idle" }

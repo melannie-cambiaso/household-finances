@@ -11,7 +11,7 @@ import {
   listIncomeSources,
   listPendingReimbursements,
 } from "@/features/incomes/service";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 import { Modal } from "@/shared/ui/modal";
 import { DeleteIncomeButton } from "./delete-income-button";

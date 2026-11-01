@@ -36,9 +36,9 @@ Branches: one per pull request, in this order (each one leaves `main` green): `r
 - T5 (S2): `expenses`. Route: inline. Done, commit dc3c78c: moved with git mv, route is a one-line re-export.
 - T6 (S2): `incomes`. Route: inline. Done, commit 2e2f849: moved with git mv; it imports expectedReimbursement from ../expenses/rules.ts.
 - T7 (S2): `transfers`. Route: inline. Done, commit d51efd4: moved with git mv; the dashboard and the savings test import it from the new place.
-- T8 (S2): `budget`. Route: inline. Commit: pending.
-- T9 (S2): `dashboard`, `auth` and the app shell. Route: inline. Commit: pending.
-- T10 (S1, S5): `docs/architecture.md`, README, `docs/stack.md` if it names folders, an independent verification and the closing "Not verified" list. Route: inline plus one `gentle-ai-verify`. Commit: pending.
+- T8 (S2): `budget`. Route: inline. Done, commit 3d267e1: moved with git mv; the dashboard imports its progress components from the new place.
+- T9 (S2): `dashboard`, `auth` and the app shell. Route: inline. Done, commit 5c58925: dashboard is one page; auth keeps its own file names (allowlist, errors, server, client, session, sign-out-button, login pages); the sidebar and layout stay in src/app/(app); src/lib is gone.
+- T10 (S1, S5): `docs/architecture.md`, README, `docs/stack.md` if it names folders, an independent verification and the closing "Not verified" list. Route: inline plus one `gentle-ai-verify`. Done, commit a9eed28 (docs) plus the verification below.
 
 ## Commits
 
@@ -49,6 +49,9 @@ Branches: one per pull request, in this order (each one leaves `main` green): `r
 - dc3c78c refactor: move expenses into src/features/expenses (T5)
 - 2e2f849 refactor: move incomes into src/features/incomes (T6)
 - d51efd4 refactor: move transfers into src/features/transfers (T7)
+- 3d267e1 refactor: move budget into src/features/budget (T8)
+- 5c58925 refactor: move dashboard and auth into src/features (T9)
+- a9eed28 docs: describe the feature-module layout (T10)
 
 ## Log
 
@@ -57,7 +60,11 @@ Branches: one per pull request, in this order (each one leaves `main` green): `r
 - L3: T3/T4 checked on branch refactor/arch-accounts-catalog-savings: tsc, eslint src and next build clean (12 routes unchanged); 233/233 tests with the database after applying migration 0003 to the test database (it lacked expenses.created_at from PR #30; 47 failures before that were that, not the move). The test case "lists items and accounts of the household only" stays in expense-service.test.ts with new imports; T5 decides where it lives.
 
 - L4: PR #32 failed in CI because the test script used an unquoted glob: on Linux sh `src/**/*.test.ts` only matched one folder level, so tests inside src/features/*/ were not found (13 of 19 files). Fixed by quoting it (d82fa25). T5-T7 on branch refactor/arch-expenses-incomes-transfers: tsc, eslint src, next build clean; 233/233 tests with the database, run through `sh -c 'npm test'` like CI.
+- L5: T8-T10 on branch refactor/arch-budget-dashboard-auth: tsc, eslint src and next build clean; 233/233 tests with the database via `sh -c 'npm test'`. Independent gentle-ai-verify: S2-S6 PASS (S1 is the user's motivation, not verifiable). Its findings: this file was stale (fixed here) and docs/architecture.md did not say that accounts has no actions.ts (fixed).
 
 ## Not verified
 
-(to fill when the feature closes)
+- The verifier could not run the database tests or the build; the parent ran both (233/233, build clean) against the shared Neon test database, not an isolated one.
+- Visual behavior in a browser was not checked after the moves; only the build, the route list and the type check.
+- budget/page.tsx and the old home page.tsx show as delete+add in a plain `git diff --stat` (the old route file became a re-export); `git log --follow` still traces their history.
+- The lint rule that would enforce the layout was proposed, not built (out of scope).

@@ -6,8 +6,8 @@ import { nextCookies } from "better-auth/next-js";
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { isAllowedEmail } from "@/lib/allowlist";
-import { EMAIL_NOT_ALLOWED } from "@/lib/auth-errors";
+import { isAllowedEmail } from "@/features/auth/allowlist";
+import { EMAIL_NOT_ALLOWED } from "@/features/auth/errors";
 
 // The household owns all data. With two members there is exactly one, created
 // the first time an allowed user signs in.

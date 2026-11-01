@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { SignOutButton } from "./sign-out-button";
+import { SignOutButton } from "@/features/auth/sign-out-button";
 
 // Only pages that exist are listed; add an entry here when a new page ships.
 const NAV_ITEMS = [

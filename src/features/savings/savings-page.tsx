@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { getSavingsOverview } from "@/features/savings/service";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 import { Modal } from "@/shared/ui/modal";
 import { OpeningBalanceForm } from "./opening-balance-form";

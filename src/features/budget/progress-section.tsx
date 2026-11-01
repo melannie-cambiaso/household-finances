@@ -1,4 +1,4 @@
-import { barWidth, type Progress, type ProgressReport } from "@/lib/budget";
+import { barWidth, type Progress, type ProgressReport } from "@/features/budget/rules";
 import { formatClp } from "@/shared/money";
 
 export function Bar({ progress, tone }: { progress: Progress; tone: "expense" | "income" }) {

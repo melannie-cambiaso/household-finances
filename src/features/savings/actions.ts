@@ -11,7 +11,7 @@ import {
   setOpeningBalance,
   type SetOpeningBalanceResult,
 } from "@/features/savings/service";
-import { getAllowedSession } from "@/lib/session";
+import { getAllowedSession } from "@/features/auth/session";
 
 const TIME_ZONE = "America/Santiago";
 

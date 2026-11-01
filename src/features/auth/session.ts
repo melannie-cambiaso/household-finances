@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
-import { auth } from "@/lib/auth";
-import { isAllowedEmail } from "@/lib/allowlist";
+import { auth } from "@/features/auth/server";
+import { isAllowedEmail } from "@/features/auth/allowlist";
 
 // Returns the current session only if its user is still on the allowlist, so
 // removing an email from ALLOWED_EMAILS also cuts sessions that already exist.
