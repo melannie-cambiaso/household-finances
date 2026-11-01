@@ -33,9 +33,9 @@ Branches: one per pull request, in this order (each one leaves `main` green): `r
 - T2 (S2): move the generic `Modal` to `src/shared/ui/modal.tsx`. Route: inline. Done, commit 1172724: git sees a rename of modal.tsx; the 11 files that used it point to @/shared/ui/modal and no old reference is left; tsc and lint clean.
 - T3 (S2, S3): `accounts` (new) and `catalog`: move the files, take `listAccounts` and `listItems` out of the expense service. Route: inline. Done, commit 3a3fbd5: accounts (now also holds the monthly nets added by PR #28 and #31) and catalog moved with git mv, listAccounts and listItems live in their feature services, 4 page imports updated, 3 route files are one-line re-exports.
 - T4 (S2): `savings`. Route: inline. Done, commit 9924af2: moved with git mv, route is a one-line re-export.
-- T5 (S2): `expenses`. Route: inline. Commit: pending.
-- T6 (S2): `incomes`. Route: inline. Commit: pending.
-- T7 (S2): `transfers`. Route: inline. Commit: pending.
+- T5 (S2): `expenses`. Route: inline. Done, commit dc3c78c: moved with git mv, route is a one-line re-export.
+- T6 (S2): `incomes`. Route: inline. Done, commit 2e2f849: moved with git mv; it imports expectedReimbursement from ../expenses/rules.ts.
+- T7 (S2): `transfers`. Route: inline. Done, commit d51efd4: moved with git mv; the dashboard and the savings test import it from the new place.
 - T8 (S2): `budget`. Route: inline. Commit: pending.
 - T9 (S2): `dashboard`, `auth` and the app shell. Route: inline. Commit: pending.
 - T10 (S1, S5): `docs/architecture.md`, README, `docs/stack.md` if it names folders, an independent verification and the closing "Not verified" list. Route: inline plus one `gentle-ai-verify`. Commit: pending.
@@ -46,12 +46,17 @@ Branches: one per pull request, in this order (each one leaves `main` green): `r
 - 1172724 refactor: move the generic Modal to src/shared/ui (T2)
 - 9924af2 refactor: move savings into src/features/savings (T4)
 - 3a3fbd5 refactor: move accounts and catalog into src/features (T3)
+- dc3c78c refactor: move expenses into src/features/expenses (T5)
+- 2e2f849 refactor: move incomes into src/features/incomes (T6)
+- d51efd4 refactor: move transfers into src/features/transfers (T7)
 
 ## Log
 
 - L1 (user): "me estoy dando cuenta que la arquitectura y sistema de carpetas de este proyecto ya se agrandó mucho y no es tan legible de entender"
 - L2 (user): chose "B: módulos completos".
 - L3: T3/T4 checked on branch refactor/arch-accounts-catalog-savings: tsc, eslint src and next build clean (12 routes unchanged); 233/233 tests with the database after applying migration 0003 to the test database (it lacked expenses.created_at from PR #30; 47 failures before that were that, not the move). The test case "lists items and accounts of the household only" stays in expense-service.test.ts with new imports; T5 decides where it lives.
+
+- L4: PR #32 failed in CI because the test script used an unquoted glob: on Linux sh `src/**/*.test.ts` only matched one folder level, so tests inside src/features/*/ were not found (13 of 19 files). Fixed by quoting it (d82fa25). T5-T7 on branch refactor/arch-expenses-incomes-transfers: tsc, eslint src, next build clean; 233/233 tests with the database, run through `sh -c 'npm test'` like CI.
 
 ## Not verified
 
