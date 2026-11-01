@@ -8,7 +8,7 @@ import {
   validateCategoryName,
   validateItemInput,
   type ItemField,
-} from "@/lib/catalog";
+} from "@/features/catalog/rules";
 import {
   createCategory,
   createItem,
@@ -16,7 +16,7 @@ import {
   deleteItem,
   renameCategory,
   updateItem,
-} from "@/lib/catalog-service";
+} from "@/features/catalog/service";
 import { UUID_PATTERN } from "@/shared/ids";
 import { getAllowedSession } from "@/lib/session";
 

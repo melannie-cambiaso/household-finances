@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { accountNet } from "./account-nets.ts";
+import { accountNet } from "./rules.ts";
 
 describe("accountNet", () => {
   it("adds incomes and transfers in, subtracts transfers out and expenses", () => {

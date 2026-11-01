@@ -11,11 +11,11 @@ import {
   createExpense,
   deleteExpense,
   getExpense,
-  listAccounts,
   listExpenses,
-  listItems,
   updateExpense,
 } from "./expense-service.ts";
+import { listAccounts } from "../features/accounts/service.ts";
+import { listItems } from "../features/catalog/service.ts";
 
 // Integration test: needs a Postgres with the migrations applied.
 // Run with TEST_DATABASE_URL pointing at a throwaway database; skipped otherwise.

@@ -7,7 +7,7 @@ import { getBudgetMonth, getBudgetProgress } from "@/lib/budget-service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { listPendingReimbursements } from "@/lib/income-service";
-import { getAccountNets } from "@/lib/account-nets-service";
+import { getAccountNets } from "@/features/accounts/service";
 import { getSavingsDebt } from "@/lib/transfer-service";
 import { debtStanding } from "@/lib/transfers";
 import { getAllowedSession } from "@/lib/session";

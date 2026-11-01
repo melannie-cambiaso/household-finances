@@ -6,7 +6,7 @@ import {
   sameName,
   validateCategoryName,
   validateItemInput,
-} from "./catalog.ts";
+} from "./rules.ts";
 
 const CATEGORY = "11111111-1111-4111-8111-111111111111";
 
