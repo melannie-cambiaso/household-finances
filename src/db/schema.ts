@@ -296,6 +296,27 @@ export const incomes = pgTable(
   (t) => [check("incomes_amount_positive", sql`${t.amount} > 0`)],
 );
 
+export const savingsGoals = pgTable(
+  "savings_goals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    householdId: uuid("household_id")
+      .notNull()
+      .references(() => households.id),
+    name: text("name").notNull(),
+    targetAmount: integer("target_amount").notNull(),
+    // Optional deadline; the page derives "left per month" from it when set.
+    targetDate: date("target_date", { mode: "string" }),
+    // null = active. There is no delete: a goal with contributions must keep
+    // them. "Achieved" is derived from progress, never stored.
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [check("savings_goals_target_amount_positive", sql`${t.targetAmount} > 0`)],
+);
+
 export const transfers = pgTable(
   "transfers",
   {
@@ -312,6 +333,10 @@ export const transfers = pgTable(
     amount: integer("amount").notNull(),
     madeOn: date("made_on", { mode: "string" }).notNull(),
     kind: transferKind("kind").notNull(),
+    // Set when the transfer is a contribution to a savings goal. The rule that
+    // it must land in a savings account is enforced by the service: a check
+    // constraint cannot read accounts.kind.
+    goalId: uuid("goal_id").references(() => savingsGoals.id),
   },
   (t) => [
     check("transfers_amount_positive", sql`${t.amount} > 0`),
