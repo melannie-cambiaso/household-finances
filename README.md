@@ -117,7 +117,7 @@ Pending reimbursements and the budget progress are computed from the records, so
 
 ## Dashboard
 
-The home page summarizes one month (`?month=YYYY-MM`, current month by default): income and spending against the budget, the net of the month (received minus spent), the state of the budget with a link to create or open it, and the total of reimbursements still pending (from any month). It only reads data. The net is not an account balance: transfers between accounts cannot be recorded yet. For a month without a budget it shows the real amounts and says there is no budget to compare with.
+The home page summarizes one month (`?month=YYYY-MM`, current month by default): income and spending against the budget, the net of the month (received minus spent), the state of the budget with a link to create or open it, and the total of reimbursements still pending (from any month). It only reads data. The net is not an account balance: transfers between two accounts change no total, and balances are shown per savings account on `/savings` only. For a month without a budget it shows the real amounts and says there is no budget to compare with.
 
 ## Transfers and the savings debt
 
