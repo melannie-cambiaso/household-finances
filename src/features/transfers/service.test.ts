@@ -58,6 +58,7 @@ describe("transfer service", { skip: !url }, () => {
     amount: 200_000,
     madeOn: "2026-10-05",
     kind: "funding",
+    goalId: null,
   });
 
   async function rowOf(id: string) {
@@ -82,10 +83,29 @@ describe("transfer service", { skip: !url }, () => {
     return result.ok ? result.id : "";
   }
 
+  async function seedGoal(
+    seed: Seed,
+    overrides: { name?: string; targetAmount?: number; archived?: boolean } = {},
+  ) {
+    const [goal] = await db
+      .insert(schema.savingsGoals)
+      .values({
+        householdId: seed.householdId,
+        name: overrides.name ?? "Emergency fund",
+        targetAmount: overrides.targetAmount ?? 1_000_000,
+        archivedAt: overrides.archived ? new Date() : null,
+      })
+      .returning({ id: schema.savingsGoals.id });
+    return goal.id;
+  }
+
   after(async () => {
     await db
       .delete(schema.transfers)
       .where(inArray(schema.transfers.householdId, householdIds));
+    await db
+      .delete(schema.savingsGoals)
+      .where(inArray(schema.savingsGoals.householdId, householdIds));
     await db
       .delete(schema.expenses)
       .where(inArray(schema.expenses.householdId, householdIds));
@@ -206,6 +226,7 @@ describe("transfer service", { skip: !url }, () => {
       amount: 5_000,
       madeOn: "2026-11-02",
       kind: "other",
+      goalId: null,
     });
     assert.deepEqual(result, { ok: true });
 
@@ -443,6 +464,98 @@ describe("transfer service", { skip: !url }, () => {
 
       assert.equal(await getSavingsDebt(db, seed.householdId), 60_000);
       assert.equal(await getSavingsDebt(db, other.householdId), 400_000);
+    });
+  });
+
+  describe("goal contributions", () => {
+    it("records a contribution that lands in a savings account", async () => {
+      const seed = await seedHousehold("goal-ok");
+      const goal = await seedGoal(seed);
+
+      const result = await createTransfer(db, seed.householdId, {
+        ...funding(seed),
+        toAccountId: seed.savingsId,
+        goalId: goal,
+      });
+      assert.equal(result.ok, true);
+      if (!result.ok) return;
+
+      const row = await rowOf(result.id);
+      assert.equal(row.goalId, goal);
+      assert.equal(row.toAccountId, seed.savingsId);
+      assert.equal((await getTransfer(db, seed.householdId, result.id))?.goalId, goal);
+
+      // The list carries the name, so the page needs no second query.
+      const [listed] = await listTransfers(db, seed.householdId, "2026-10-01");
+      assert.equal(listed.goalName, "Emergency fund");
+    });
+
+    it("refuses a contribution that does not land in a savings account", async () => {
+      const seed = await seedHousehold("goal-not-savings");
+      const goal = await seedGoal(seed);
+
+      const result = await createTransfer(db, seed.householdId, {
+        ...funding(seed),
+        toAccountId: seed.utilitiesId,
+        goalId: goal,
+      });
+      assert.deepEqual(result, { ok: false, error: "goal_contribution_must_go_to_savings" });
+      assert.equal(await countOf(seed.householdId), 0);
+    });
+
+    it("refuses an archived goal, a foreign goal and an unknown one the same way", async () => {
+      const seed = await seedHousehold("goal-bad");
+      const other = await seedHousehold("goal-bad-other");
+      const archived = await seedGoal(seed, { name: "Done", archived: true });
+      const foreign = await seedGoal(other);
+
+      for (const goalId of [archived, foreign, randomUUID()]) {
+        const result = await createTransfer(db, seed.householdId, {
+          ...funding(seed),
+          toAccountId: seed.savingsId,
+          goalId,
+        });
+        assert.deepEqual(result, { ok: false, error: "goal_not_found" });
+      }
+      assert.equal(await countOf(seed.householdId), 0);
+      assert.equal(await countOf(other.householdId), 0);
+    });
+
+    it("applies the same rules to an edit, and clears the goal when none is sent", async () => {
+      const seed = await seedHousehold("goal-edit");
+      const goal = await seedGoal(seed);
+      const archived = await seedGoal(seed, { name: "Old", archived: true });
+      const contribution = await make(seed, { toAccountId: seed.savingsId, goalId: goal });
+
+      const refused = await updateTransfer(db, seed.householdId, contribution, {
+        ...funding(seed),
+        toAccountId: seed.savingsId,
+        goalId: archived,
+      });
+      assert.deepEqual(refused, { ok: false, error: "goal_not_found" });
+      assert.equal((await rowOf(contribution)).goalId, goal);
+
+      const cleared = await updateTransfer(db, seed.householdId, contribution, {
+        ...funding(seed),
+        toAccountId: seed.savingsId,
+        goalId: null,
+      });
+      assert.deepEqual(cleared, { ok: true });
+      assert.equal((await rowOf(contribution)).goalId, null);
+    });
+
+    it("counts a contribution once in the savings balances", async () => {
+      const seed = await seedHousehold("goal-once");
+      const goal = await seedGoal(seed);
+      await make(seed, { toAccountId: seed.savingsId, goalId: goal, amount: 250_000 });
+
+      assert.deepEqual(await getSavingsNetEffect(db, seed.householdId, "2026-10-01"), {
+        spentFromSavings: 0,
+        movedOutOfSavings: 0,
+        movedIntoSavings: 250_000,
+      });
+      // A contribution is money moved, not a repayment: it pays no debt.
+      assert.equal(await getSavingsDebt(db, seed.householdId), 0);
     });
   });
 });

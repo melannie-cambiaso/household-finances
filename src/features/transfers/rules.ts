@@ -28,6 +28,8 @@ export type TransferInput = {
   amount: number;
   madeOn: string;
   kind: TransferKind;
+  /** Set when the transfer contributes to a savings goal; null otherwise. */
+  goalId: string | null;
 };
 
 export type TransferField = keyof TransferInput;
@@ -65,13 +67,18 @@ export function validateTransferInput(
   const kind = raw.kind.trim();
   if (!isTransferKind(kind)) errors.kind = "Choose a kind";
 
+  const goalId = raw.goalId.trim();
+  if (goalId !== "" && !UUID_PATTERN.test(goalId)) {
+    errors.goalId = "Choose a valid goal";
+  }
+
   if (Object.keys(errors).length > 0 || amount === null || !isTransferKind(kind)) {
     return { ok: false, errors };
   }
 
   return {
     ok: true,
-    value: { fromAccountId, toAccountId, amount, madeOn, kind },
+    value: { fromAccountId, toAccountId, amount, madeOn, kind, goalId: goalId || null },
   };
 }
 

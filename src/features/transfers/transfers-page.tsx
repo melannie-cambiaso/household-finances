@@ -189,6 +189,7 @@ async function TransfersContent({
                               amount: String(transfer.amount),
                               madeOn: transfer.madeOn,
                               kind: transfer.kind,
+                              goalId: transfer.goalId ?? "",
                             },
                           }}
                         />

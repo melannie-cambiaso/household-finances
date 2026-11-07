@@ -17,6 +17,7 @@ const valid = {
   amount: "150.000",
   madeOn: "2026-10-23",
   kind: "repayment",
+  goalId: "",
 };
 
 describe("validateTransferInput", () => {
@@ -29,8 +30,30 @@ describe("validateTransferInput", () => {
         amount: 150000,
         madeOn: "2026-10-23",
         kind: "repayment",
+        goalId: null,
       },
     });
+  });
+
+  it("keeps a goal id when one is sent", () => {
+    const GOAL = "33333333-3333-4333-8333-333333333333";
+    const result = validateTransferInput({ ...valid, goalId: ` ${GOAL} ` });
+    assert.equal(result.ok, true);
+    if (result.ok) assert.equal(result.value.goalId, GOAL);
+  });
+
+  it("turns a missing goal into null", () => {
+    const result = validateTransferInput({ ...valid, goalId: "   " });
+    assert.equal(result.ok, true);
+    if (result.ok) assert.equal(result.value.goalId, null);
+  });
+
+  it("refuses a goal id that is not a UUID", () => {
+    const result = validateTransferInput({ ...valid, goalId: "not-a-goal" });
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.deepEqual(Object.keys(result.errors), ["goalId"]);
+    }
   });
 
   it("accepts each kind", () => {
@@ -69,12 +92,14 @@ describe("validateTransferInput", () => {
       amount: "12,5",
       madeOn: "2026-02-30",
       kind: "gift",
+      goalId: "zzz",
     });
     assert.equal(result.ok, false);
     if (!result.ok) {
       assert.deepEqual(Object.keys(result.errors).sort(), [
         "amount",
         "fromAccountId",
+        "goalId",
         "kind",
         "madeOn",
         "toAccountId",

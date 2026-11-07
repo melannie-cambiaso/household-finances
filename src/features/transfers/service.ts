@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
@@ -10,12 +10,18 @@ import type { SavingsNetEffect, TransferInput } from "./rules.ts";
 // Postgres. Relative imports keep it runnable by Node's native TypeScript support.
 type Db = PostgresJsDatabase<typeof schema>;
 
-type TransferRejection = "account_not_found" | "repayment_must_go_to_savings";
+type TransferRejection =
+  | "account_not_found"
+  | "repayment_must_go_to_savings"
+  | "goal_not_found"
+  | "goal_contribution_must_go_to_savings";
 
 /**
  * Rules shared by creating and editing: both accounts must belong to the
- * household, and a repayment must go into a savings account, because only that
- * reduces the savings debt. Returns the rejection, or null when it may be written.
+ * household, a repayment must go into a savings account, because only that
+ * reduces the savings debt, and a goal contribution must land in a savings
+ * account too (and name a goal of the household that is still active).
+ * Returns the rejection, or null when it may be written.
  */
 async function checkTransferAccounts(
   reader: Pick<Db, "select">,
@@ -39,6 +45,26 @@ async function checkTransferAccounts(
   if (input.kind === "repayment" && to.kind !== "savings") {
     return { ok: false, error: "repayment_must_go_to_savings" };
   }
+
+  if (input.goalId !== null) {
+    const [goal] = await reader
+      .select({ id: schema.savingsGoals.id })
+      .from(schema.savingsGoals)
+      .where(
+        and(
+          eq(schema.savingsGoals.id, input.goalId),
+          eq(schema.savingsGoals.householdId, householdId),
+          isNull(schema.savingsGoals.archivedAt),
+        ),
+      );
+    // One message for a missing goal, one of another household and an archived
+    // one: do not reveal whether an id exists.
+    if (!goal) return { ok: false, error: "goal_not_found" };
+    if (to.kind !== "savings") {
+      return { ok: false, error: "goal_contribution_must_go_to_savings" };
+    }
+  }
+
   return null;
 }
 
@@ -64,6 +90,7 @@ export async function createTransfer(
       amount: input.amount,
       madeOn: input.madeOn,
       kind: input.kind,
+      goalId: input.goalId,
     })
     .returning({ id: schema.transfers.id });
   return { ok: true, id: created.id };
@@ -79,6 +106,7 @@ export async function getTransfer(db: Db, householdId: string, id: string) {
       amount: schema.transfers.amount,
       madeOn: schema.transfers.madeOn,
       kind: schema.transfers.kind,
+      goalId: schema.transfers.goalId,
     })
     .from(schema.transfers)
     .where(
@@ -127,6 +155,7 @@ export async function updateTransfer(
         amount: input.amount,
         madeOn: input.madeOn,
         kind: input.kind,
+        goalId: input.goalId,
       })
       .where(
         and(
@@ -182,12 +211,15 @@ export async function listTransfers(
       amount: schema.transfers.amount,
       madeOn: schema.transfers.madeOn,
       kind: schema.transfers.kind,
+      goalId: schema.transfers.goalId,
+      goalName: schema.savingsGoals.name,
       fromName: from.name,
       toName: to.name,
     })
     .from(schema.transfers)
     .innerJoin(from, eq(schema.transfers.fromAccountId, from.id))
     .innerJoin(to, eq(schema.transfers.toAccountId, to.id))
+    .leftJoin(schema.savingsGoals, eq(schema.transfers.goalId, schema.savingsGoals.id))
     .where(
       and(
         eq(schema.transfers.householdId, householdId),

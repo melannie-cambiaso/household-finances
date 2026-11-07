@@ -78,6 +78,11 @@ export function TransferForm({
       {transfer && (
         <input type="hidden" name="transferId" value={transfer.id} />
       )}
+      {/* T4 replaces this with the goal select. Until then an edit must not
+          drop the goal the transfer already has. */}
+      {values?.goalId ? (
+        <input type="hidden" name="goalId" value={values.goalId} />
+      ) : null}
 
       {accountSelect("fromAccountId", "From", "Choose the source account")}
       {accountSelect("toAccountId", "To", "Choose the destination account")}

@@ -34,6 +34,7 @@ const FIELDS: TransferField[] = [
   "amount",
   "madeOn",
   "kind",
+  "goalId",
 ];
 
 function readText(formData: FormData, name: string): string {
@@ -42,7 +43,14 @@ function readText(formData: FormData, name: string): string {
 }
 
 function emptyValues(): TransferFormValues {
-  return { fromAccountId: "", toAccountId: "", amount: "", madeOn: "", kind: "" };
+  return {
+    fromAccountId: "",
+    toAccountId: "",
+    amount: "",
+    madeOn: "",
+    kind: "",
+    goalId: "",
+  };
 }
 
 function readValues(formData: FormData): TransferFormValues {
@@ -61,6 +69,9 @@ const MESSAGES: Record<
   account_not_found: "That account is not available",
   repayment_must_go_to_savings:
     "A repayment must go into a savings account, because that is what it pays back",
+  goal_not_found: "That goal is not available",
+  goal_contribution_must_go_to_savings:
+    "A contribution to a goal must go into a savings account",
   transfer_not_found: "That transfer no longer exists",
 };
 
