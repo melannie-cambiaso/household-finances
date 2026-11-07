@@ -6,13 +6,11 @@ import { db } from "@/db";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { getSavingsOverview } from "@/features/savings/service";
-import { listGoalsWithProgress } from "@/features/savings-goals/service";
-import { GoalsSection } from "@/features/savings-goals/goals-section";
-import { listAccounts } from "@/features/accounts/service";
 import { getAllowedSession } from "@/features/auth/session";
 
 import { Modal } from "@/shared/ui/modal";
 import { OpeningBalanceForm } from "./opening-balance-form";
+import { SavingsTabs } from "./savings-tabs";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -63,10 +61,6 @@ async function SavingsContent({
   );
 
   const overview = await getSavingsOverview(db, householdId, month, today);
-  const [accounts, goals] = await Promise.all([
-    listAccounts(db, householdId),
-    listGoalsWithProgress(db, householdId),
-  ]);
 
   return (
     <>
@@ -97,6 +91,8 @@ async function SavingsContent({
       </header>
 
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-8">
+        <SavingsTabs current="movements" />
+
         {overview.accounts.length === 0 ? (
           <p className="rounded-card border border-line bg-surface p-6 text-muted">
             There is no savings account yet. Run{" "}
@@ -123,18 +119,6 @@ async function SavingsContent({
             )}
           </section>
         )}
-
-        {/* Goals need no savings account to be created, but a contribution
-            needs one that can receive it. */}
-        <GoalsSection
-          goals={goals}
-          accounts={accounts.map(({ id, name }) => ({ id, name }))}
-          savingsAccounts={overview.accounts.map(({ id, name }) => ({
-            id,
-            name,
-          }))}
-          today={today}
-        />
 
         {overview.accounts.map((account) => (
             <section

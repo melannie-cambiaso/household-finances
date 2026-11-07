@@ -170,9 +170,9 @@ The first deployment failed at the install step with `ERR_PNPM_IGNORED_BUILDS`: 
 
 ## Savings
 
-`/savings` shows how much the household has saved, how it moved and what it is saving toward. It lists every savings account with its balance today, the total on top, and the movements of one calendar month (`?month=YYYY-MM`, current month by default) with the balance at the start and at the end of that month.
+`/savings` is split in two tabs. **Movements** shows how much the household has saved and how it moved; **Goals** (`/savings/goals`) is what it is saving toward. Both live under the same `Savings` entry in the menu, so the menu did not grow.
 
-The page needs a starting point. For each savings account, use **Set opening balance** to type how much was saved at the start of a given day (zero is allowed; the day cannot be in the future). Until then the account shows no balance.
+Movements lists every savings account with its balance today, the total on top, and the movements of one calendar month (`?month=YYYY-MM`, current month by default) with the balance at the start and at the end of that month. It needs a starting point: for each savings account, use **Set opening balance** to type how much was saved at the start of a given day (zero is allowed; the day cannot be in the future). Until then the account shows no balance.
 
 - **The balance is never stored.** It is computed on every visit: the opening amount, plus incomes received into the account, plus transfers into it, minus transfers out of it, minus expenses paid from it, up to today. Only the opening amount and its date are stored, in two optional columns of `accounts`.
 - **Movements from the opening day on count.** The amount is what there was at the start of that day, so a movement made on that day is added to it and one dated earlier is ignored. Use the figure from before you registered that day's movements, or they would be counted twice. Movements dated after today are not counted yet.
@@ -180,11 +180,11 @@ The page needs a starting point. For each savings account, use **Set opening bal
 - **The savings debt is a different number.** It still lives on `/transfers` and the dashboard and counts only what was spent from savings minus the repayments. Changing the opening balance never changes it.
 - Changing the opening balance later moves every balance by the difference. There is no history of past values.
 
-Account balances for Salary and Utilities are not part of this page.
+Account balances for Salary and Utilities are not part of these pages.
 
 ### Savings goals
 
-The **Goals** section of `/savings` tracks what the household is saving toward. Each goal has a name, a target amount and an optional target date; when the date is set and still ahead, the card also says what to put aside per month to get there, counting the target month.
+The **Goals** tab (`/savings/goals`) tracks what the household is saving toward. Each goal has a name, a target amount and an optional target date; when the date is set and still ahead, the card also says what to put aside per month to get there, counting the target month.
 
 - **A contribution is a real transfer.** Contributing opens the transfer form with the goal already chosen and the destination limited to savings accounts, so the money really moved and counts in the savings balance once. The source is any account, because money is usually put aside from Salary, and the kind starts on Funding.
 - **Progress is never stored.** It is the sum of the transfers linked to the goal, computed on every visit, so editing or deleting a contribution changes it at once. A goal is **achieved** when the contributions reach its target, and the card says by how much they went past it.

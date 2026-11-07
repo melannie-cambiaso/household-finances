@@ -132,7 +132,7 @@ function GoalCard({
 }
 
 /**
- * The goals section of /savings. Progress is derived on the server from the
+ * The Goals half of /savings. Progress is derived on the server from the
  * transfers linked to each goal, so nothing here needs to be kept in sync.
  */
 export function GoalsSection({
@@ -154,14 +154,13 @@ export function GoalsSection({
 
   return (
     <section className="rounded-card border border-line bg-surface p-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-xl">Goals</h2>
-          <p className="text-sm text-muted">
-            What you are saving toward. A contribution is a transfer into a
-            savings account, so it counts in your savings once.
-          </p>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted">
+          {active.length === 0
+            ? "No active goals yet."
+            : `${active.length} active`}
+          {archived.length > 0 && ` · ${archived.length} archived`}
+        </p>
         <Modal
           triggerLabel="+ Add goal"
           triggerClassName={primaryButtonClass}
@@ -171,9 +170,7 @@ export function GoalsSection({
         </Modal>
       </div>
 
-      {active.length === 0 ? (
-        <p className="text-muted">No active goals yet.</p>
-      ) : (
+      {active.length > 0 && (
         <ul className="flex flex-col gap-3">
           {active.map((goal) => (
             <GoalCard
