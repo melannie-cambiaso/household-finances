@@ -7,6 +7,7 @@ import { listAccounts } from "@/features/accounts/service";
 import { formatClp } from "@/shared/money";
 import { formatMonthLabel, parseMonthParam, shiftMonth, todayIn } from "@/shared/dates";
 import { getSavingsDebt, listTransfers } from "@/features/transfers/service";
+import { listGoalsWithProgress } from "@/features/savings-goals/service";
 import { debtStanding, transferKindLabel } from "@/features/transfers/rules";
 import { getAllowedSession } from "@/features/auth/session";
 
@@ -57,12 +58,17 @@ async function TransfersContent({
     today,
   );
 
-  const [accounts, transfers, debt] = await Promise.all([
+  const [accounts, transfers, debt, goals] = await Promise.all([
     listAccounts(db, householdId),
     listTransfers(db, householdId, month),
     getSavingsDebt(db, householdId),
+    listGoalsWithProgress(db, householdId),
   ]);
   const standing = debtStanding(debt);
+  // Only an active goal can take a new contribution.
+  const activeGoals = goals
+    .filter((goal) => goal.archivedAt === null)
+    .map(({ id, name }) => ({ id, name }));
 
   return (
     <>
@@ -142,6 +148,7 @@ async function TransfersContent({
             >
               <TransferForm
                 accounts={accounts}
+                goals={activeGoals}
                 today={today}
               />
             </Modal>
@@ -166,6 +173,8 @@ async function TransfersContent({
                     </p>
                     <p className="text-sm text-muted">
                       {transfer.madeOn} · {transferKindLabel(transfer.kind)}
+                      {transfer.goalName !== null &&
+                        ` · goal: ${transfer.goalName}`}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
@@ -180,6 +189,7 @@ async function TransfersContent({
                       >
                         <TransferForm
                           accounts={accounts}
+                          goals={activeGoals}
                           today={today}
                           transfer={{
                             id: transfer.id,
@@ -189,6 +199,7 @@ async function TransfersContent({
                               amount: String(transfer.amount),
                               madeOn: transfer.madeOn,
                               kind: transfer.kind,
+                              goalId: transfer.goalId ?? "",
                             },
                           }}
                         />
