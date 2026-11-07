@@ -12,7 +12,7 @@ import { getSavingsDebt } from "@/features/transfers/service";
 import { debtStanding } from "@/features/transfers/rules";
 import { getAllowedSession } from "@/features/auth/session";
 
-import { Bar, Figures } from "@/features/budget/progress-section";
+import { Bar, Figures, HeadroomFigures } from "@/features/budget/progress-section";
 
 const TIME_ZONE = "America/Santiago";
 
@@ -162,6 +162,7 @@ async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
           {budget ? (
             <div className="grid gap-1">
               <Figures progress={spending} tone="expense" />
+              <HeadroomFigures headroom={report.expenseHeadroom} />
               <Bar progress={spending} tone="expense" />
             </div>
           ) : (

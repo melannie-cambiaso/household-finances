@@ -157,7 +157,32 @@ export type ProgressReport = {
   sources: SourceProgress[];
   expenseTotal: Progress;
   incomeTotal: Progress;
+  // The expense total split by sign, so the slack and the overspending are
+  // both visible instead of cancelling out.
+  expenseHeadroom: Headroom;
 };
+
+export type Headroom = {
+  // Sum of the unused part of every row: Σ max(planned - actual, 0).
+  available: number;
+  // Sum of the part spent past the plan: Σ max(actual - planned, 0).
+  over: number;
+};
+
+/**
+ * Splits rows into what is still available and what went over the plan. Both
+ * sides are kept apart so `available - over` always equals the money left,
+ * which is what makes the pair readable: the left total is the net of the two.
+ */
+function headroomOf(rows: Progress[]): Headroom {
+  let available = 0;
+  let over = 0;
+  for (const row of rows) {
+    if (row.remaining >= 0) available += row.remaining;
+    else over -= row.remaining;
+  }
+  return { available, over };
+}
 
 const byName = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name);
@@ -239,6 +264,11 @@ export function buildProgressReport(input: {
     incomeTotal: progressOf(
       sum(sourceList.map((s) => s.progress.planned)),
       sum(sourceList.map((s) => s.progress.actual)),
+    ),
+    // Per item, not per category: money left in one line is still money you
+    // have, even when the rest of its category went over.
+    expenseHeadroom: headroomOf(
+      categoryList.flatMap((c) => c.items.map((i) => i.progress)),
     ),
   };
 }
