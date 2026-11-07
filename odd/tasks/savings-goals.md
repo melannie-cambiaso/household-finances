@@ -29,9 +29,10 @@ The branch is one feature of five tasks. Measured before the last commit (lock f
 | Schema and goals service (T1, T2) | `a0307d0`, `d7adec5` | ~1980, most of it the generated migration |
 | Contributions through transfers (T3) | `38bef15` | 227 |
 | Goals UI and goal select (T4) | `62ba2e6` | 728 |
-| Docs (T5) | this commit | ~150 |
+| Docs (T5) | `22b471b` | ~150 |
+| One tab per face of the page (T6) | `cde7c04` | ~150 |
 
-Proposed chain: T1+T2, then T3, then T4+T5. Opening the pull requests is the user's decision, not part of the feature work.
+Proposed chain: T1+T2, then T3, then T4+T5+T6. Opening the pull requests is the user's decision, not part of the feature work.
 
 ## Log
 
