@@ -14,6 +14,7 @@ Shared household finance app. Target stack: Next.js + hosted Postgres, deployed 
 | Frozen percentage | `reimbursement_pct` is copied from the item into the expense when it is created, so later changes never rewrite history. |
 | Budget lifecycle | A new month's budget is **copied from the previous month** as a `draft`, editable freely. Once the user **confirms** it, it is locked (no adding or editing lines). If a month starts with no budget, the app auto-copies one as a `draft`. Expenses and incomes can be recorded in any state. |
 | Money | Stored as integer amounts (no floats). Assumes a currency without decimals (CLP). |
+| Savings goals | A goal is a target the household saves toward. A **contribution is a real transfer** carrying `goal_id`, so the money really moved. Progress and "achieved" are **derived, never stored**. Archiving is `archived_at`; there is no delete. |
 
 ## Entities
 
@@ -26,6 +27,7 @@ households 1─* income_sources
 households 1─* incomes
 households 1─* expenses
 households 1─* transfers
+households 1─* savings_goals 1─* transfers (goal_id, nullable)
 ```
 
 ### households
@@ -136,10 +138,26 @@ For `per_friday`, the planned amount of a month is `default_amount * fridays_in_
 | amount | integer | |
 | made_on | date | |
 | kind | enum | `repayment` / `funding` / `other` |
+| goal_id | uuid FK null | Set when the transfer contributes to a savings goal |
 
 A `funding` transfer (Salary → Utilities) moves money between accounts; it is **not an expense**, so it never counts against the budget. The actual utility bills are recorded as expenses paid from the Utilities account.
 
 Only `repayment` transfers into a `savings` account reduce the debt. The debt is always visible in the UI whenever it is above zero.
+
+A transfer with `goal_id` set is a goal contribution: it must land in a `savings` account (same rule as a repayment), and the goal must belong to the household and still be active. Editing or deleting it follows the ordinary transfer rules.
+
+### savings_goals
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | uuid PK | |
+| household_id | uuid FK | |
+| name | text | At most 60 characters |
+| target_amount | integer | Whole CLP, greater than zero |
+| target_date | date null | Optional deadline; the UI derives what to put aside per month |
+| archived_at | timestamptz null | Null = active. Archived goals keep their contributions and take no new ones |
+| created_at | timestamptz | Ordering only |
+
+There is no `achieved` column: a goal is achieved when its contributions reach `target_amount`, computed on every read. There is no delete either, because a goal with contributions has to keep its transfers.
 
 ## Derived values (computed, never stored)
 
@@ -159,6 +177,11 @@ Pending reimbursement:       expected - sum(incomes.amount WHERE related_expense
 
 Savings debt = sum(expenses.amount WHERE account.kind = 'savings')
              - sum(transfers.amount WHERE kind = 'repayment' AND to = a savings account)
+
+Goal progress:               sum(transfers.amount WHERE goal_id = goal.id)
+Goal achieved:               progress >= goal.target_amount
+Goal left per month:         ceil((target_amount - progress) / months left, counting the target month);
+                             nothing when the target date already passed
 ```
 
 ## Open questions

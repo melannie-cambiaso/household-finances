@@ -170,7 +170,7 @@ The first deployment failed at the install step with `ERR_PNPM_IGNORED_BUILDS`: 
 
 ## Savings
 
-`/savings` shows how much the household has saved and how it moved. It lists every savings account with its balance today, the total on top, and the movements of one calendar month (`?month=YYYY-MM`, current month by default) with the balance at the start and at the end of that month.
+`/savings` shows how much the household has saved, how it moved and what it is saving toward. It lists every savings account with its balance today, the total on top, and the movements of one calendar month (`?month=YYYY-MM`, current month by default) with the balance at the start and at the end of that month.
 
 The page needs a starting point. For each savings account, use **Set opening balance** to type how much was saved at the start of a given day (zero is allowed; the day cannot be in the future). Until then the account shows no balance.
 
@@ -180,7 +180,16 @@ The page needs a starting point. For each savings account, use **Set opening bal
 - **The savings debt is a different number.** It still lives on `/transfers` and the dashboard and counts only what was spent from savings minus the repayments. Changing the opening balance never changes it.
 - Changing the opening balance later moves every balance by the difference. There is no history of past values.
 
-Savings goals and account balances for Salary and Utilities are not part of this page.
+Account balances for Salary and Utilities are not part of this page.
+
+### Savings goals
+
+The **Goals** section of `/savings` tracks what the household is saving toward. Each goal has a name, a target amount and an optional target date; when the date is set and still ahead, the card also says what to put aside per month to get there, counting the target month.
+
+- **A contribution is a real transfer.** Contributing opens the transfer form with the goal already chosen and the destination limited to savings accounts, so the money really moved and counts in the savings balance once. The source is any account, because money is usually put aside from Salary, and the kind starts on Funding.
+- **Progress is never stored.** It is the sum of the transfers linked to the goal, computed on every visit, so editing or deleting a contribution changes it at once. A goal is **achieved** when the contributions reach its target, and the card says by how much they went past it.
+- **Archive instead of deleting.** An archived goal keeps its contributions and its history, stops counting as active and no longer accepts contributions. Creating, editing or archiving a goal changes no balance and no debt by itself: only the transfers do.
+- **A goal can also be picked on `/transfers`**, where the form has an optional goal field. A contribution that lands outside a savings account is refused, and editing a transfer whose goal was archived keeps that goal rather than dropping it silently.
 
 ## Continuous integration
 
