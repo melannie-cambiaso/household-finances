@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 
-import { TRANSFER_KINDS, transferKindLabel } from "@/features/transfers/rules";
+import { TRANSFER_KINDS, transferKindLabel, type TransferKind } from "@/features/transfers/rules";
 
 import {
   createTransferAction,
@@ -13,6 +13,7 @@ import {
 import { useModalClose } from "@/shared/ui/modal";
 
 type AccountOption = { id: string; name: string };
+type GoalOption = { id: string; name: string };
 
 const initialState: TransferFormState = { status: "idle" };
 
@@ -23,11 +24,23 @@ export function TransferForm({
   accounts,
   today,
   transfer,
+  goals,
+  toAccounts,
+  presetGoalId,
+  presetKind,
 }: {
   accounts: AccountOption[];
   today: string;
   // Present when editing: the transfer id and the values to pre-fill.
   transfer?: { id: string; values: TransferFormValues };
+  // The active goals, when the form offers a contribution. Without them a goal
+  // the transfer already has is only kept, never chosen.
+  goals?: GoalOption[];
+  // What the money may go to; every account unless only savings can take it.
+  toAccounts?: AccountOption[];
+  // The goal to start on: how a goal card contributes to itself.
+  presetGoalId?: string;
+  presetKind?: TransferKind;
 }) {
   const [state, formAction, pending] = useActionState(
     transfer ? updateTransferAction : createTransferAction,
@@ -43,11 +56,16 @@ export function TransferForm({
   const values =
     state.status === "error" ? state.values : (transfer?.values ?? null);
   const errors = state.status === "error" ? state.errors : {};
+  const goalId =
+    values?.goalId ?? transfer?.values.goalId ?? presetGoalId ?? "";
+  const kind = values?.kind ?? transfer?.values.kind ?? presetKind ?? "";
+  const toOptions = toAccounts ?? accounts;
 
   const accountSelect = (
     name: "fromAccountId" | "toAccountId",
     label: string,
     placeholder: string,
+    options: AccountOption[],
   ) => (
     <label className="grid gap-1">
       <span className="text-muted">{label}</span>
@@ -63,7 +81,7 @@ export function TransferForm({
         <option value="" disabled>
           {placeholder}
         </option>
-        {accounts.map((account) => (
+        {options.map((account) => (
           <option key={account.id} value={account.id}>
             {account.name}
           </option>
@@ -78,14 +96,35 @@ export function TransferForm({
       {transfer && (
         <input type="hidden" name="transferId" value={transfer.id} />
       )}
-      {/* T4 replaces this with the goal select. Until then an edit must not
-          drop the goal the transfer already has. */}
-      {values?.goalId ? (
+      {accountSelect("fromAccountId", "From", "Choose the source account", accounts)}
+      {accountSelect("toAccountId", "To", "Choose the destination account", toOptions)}
+
+      {goals ? (
+        <label className="grid gap-1">
+          <span className="text-muted">Goal (optional)</span>
+          <select
+            key={`goal-${goalId}`}
+            name="goalId"
+            defaultValue={goalId}
+            className={inputClass}
+          >
+            <option value="">No goal</option>
+            {goals.map((goal) => (
+              <option key={goal.id} value={goal.id}>
+                {goal.name}
+              </option>
+            ))}
+            {/* An archived goal is not offered for a new contribution, but an
+                edited transfer keeps the one it already has. */}
+            {goalId !== "" && !goals.some((goal) => goal.id === goalId) && (
+              <option value={goalId}>Archived goal</option>
+            )}
+          </select>
+          {errors.goalId && <FieldError message={errors.goalId} />}
+        </label>
+      ) : values?.goalId ? (
         <input type="hidden" name="goalId" value={values.goalId} />
       ) : null}
-
-      {accountSelect("fromAccountId", "From", "Choose the source account")}
-      {accountSelect("toAccountId", "To", "Choose the destination account")}
 
       <label className="grid gap-1">
         <span className="text-muted">Amount (CLP)</span>
@@ -117,10 +156,10 @@ export function TransferForm({
       <label className="grid gap-1">
         <span className="text-muted">Kind</span>
         <select
-          key={`kind-${values?.kind ?? ""}`}
+          key={`kind-${kind}`}
           name="kind"
           required
-          defaultValue={values?.kind ?? ""}
+          defaultValue={kind}
           className={inputClass}
         >
           <option value="" disabled>

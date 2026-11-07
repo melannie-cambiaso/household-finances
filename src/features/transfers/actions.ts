@@ -75,9 +75,12 @@ const MESSAGES: Record<
   transfer_not_found: "That transfer no longer exists",
 };
 
-// The savings debt is derived from transfers, and the dashboard shows it.
+// The savings debt is derived from transfers, and the dashboard shows it. A
+// contribution is also a transfer into savings, so /savings and its goals change
+// with it.
 function revalidateAll() {
   revalidatePath("/transfers");
+  revalidatePath("/savings");
   revalidatePath("/");
 }
 
