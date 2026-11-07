@@ -9,6 +9,7 @@ import {
   perFridayPlanned,
   plannedTotals,
   progressOf,
+  showsHeadroomSplit,
 } from "./rules.ts";
 
 const ITEM = "11111111-1111-4111-8111-111111111111";
@@ -209,6 +210,36 @@ describe("buildProgressReport", () => {
     assert.deepEqual(report.expenseTotal, progressOf(600_000, 650_000));
     assert.deepEqual(report.incomeTotal, progressOf(1_540_000, 1_510_000));
   });
+
+  it("splits the month into what is still available and what went over", () => {
+    // Health is 20_000 over and Home 30_000 over, with nothing left in either.
+    assert.deepEqual(report.expenseHeadroom, { available: 0, over: 50_000 });
+  });
+
+  it("sums the headroom per item, so a category's overspending hides nothing", () => {
+    const split = buildProgressReport({
+      items: [
+        { id: "a", name: "A", categoryId: "c", categoryName: "C" },
+        { id: "b", name: "B", categoryId: "c", categoryName: "C" },
+      ],
+      sources: [],
+      plannedByItem: { a: 100_000, b: 100_000 },
+      spentByItem: { a: 40_000, b: 150_000 },
+      plannedBySource: {},
+      receivedBySource: {},
+    });
+    // The category is 10_000 over overall, but item A still has 60_000 free.
+    assert.deepEqual(split.expenseHeadroom, { available: 60_000, over: 50_000 });
+  });
+
+  it("keeps available minus over equal to the money left", () => {
+    for (const figures of [report.expenseHeadroom]) {
+      assert.equal(
+        figures.available - figures.over,
+        report.expenseTotal.remaining,
+      );
+    }
+  });
 });
 
 describe("barWidth", () => {
@@ -260,5 +291,15 @@ describe("plannedTotals", () => {
       spending: 0,
       income: 0,
     });
+  });
+});
+
+describe("showsHeadroomSplit", () => {
+  it("shows the split only when both sides have money", () => {
+    assert.equal(showsHeadroomSplit({ available: 60_000, over: 50_000 }), true);
+    // The net total above already says these two on its own.
+    assert.equal(showsHeadroomSplit({ available: 60_000, over: 0 }), false);
+    assert.equal(showsHeadroomSplit({ available: 0, over: 50_000 }), false);
+    assert.equal(showsHeadroomSplit({ available: 0, over: 0 }), false);
   });
 });

@@ -1,4 +1,10 @@
-import { barWidth, type Progress, type ProgressReport } from "@/features/budget/rules";
+import {
+  barWidth,
+  showsHeadroomSplit,
+  type Headroom,
+  type Progress,
+  type ProgressReport,
+} from "@/features/budget/rules";
 import { formatClp } from "@/shared/money";
 
 export function Bar({ progress, tone }: { progress: Progress; tone: "expense" | "income" }) {
@@ -45,6 +51,18 @@ export function Figures({
   );
 }
 
+export function HeadroomFigures({ headroom }: { headroom: Headroom }) {
+  // The pair adds up to the money left above: the slack on the lines that
+  // stayed under the plan, minus what the others went over. It only shows when
+  // both sides exist; otherwise the figure above already says the same.
+  if (!showsHeadroomSplit(headroom)) return null;
+  return (
+    <p className="text-sm text-muted">
+      Available <span className="font-numeric">{formatClp(headroom.available)}</span> · over by <span className="font-numeric">{formatClp(headroom.over)}</span>
+    </p>
+  );
+}
+
 export function ProgressSection({ report }: { report: ProgressReport }) {
   return (
     <>
@@ -52,6 +70,7 @@ export function ProgressSection({ report }: { report: ProgressReport }) {
         <h2 className="mb-1 text-xl">Spending vs. budget</h2>
         <div className="mb-5 grid gap-1">
           <Figures progress={report.expenseTotal} tone="expense" />
+          <HeadroomFigures headroom={report.expenseHeadroom} />
           <Bar progress={report.expenseTotal} tone="expense" />
         </div>
 
