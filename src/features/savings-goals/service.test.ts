@@ -39,14 +39,24 @@ describe("savings goals service", { skip: !url }, () => {
   type Seed = Awaited<ReturnType<typeof seedHousehold>>;
 
   after(async () => {
-    // Each test built its own household, so cleanup is per household.
-    for (const id of householdIds) {
-      await db.delete(schema.transfers).where(eq(schema.transfers.householdId, id));
-      await db.delete(schema.savingsGoals).where(eq(schema.savingsGoals.householdId, id));
-      await db.delete(schema.accounts).where(eq(schema.accounts.householdId, id));
-      await db.delete(schema.households).where(eq(schema.households.id, id));
+    try {
+      // Each test built its own household, so cleanup is per household. Every
+      // transfer goes first: one test links a transfer of another household to
+      // a goal of this one, and deleting a goal that a transfer still points at
+      // fails the foreign key.
+      for (const id of householdIds) {
+        await db.delete(schema.transfers).where(eq(schema.transfers.householdId, id));
+      }
+      for (const id of householdIds) {
+        await db.delete(schema.savingsGoals).where(eq(schema.savingsGoals.householdId, id));
+        await db.delete(schema.accounts).where(eq(schema.accounts.householdId, id));
+        await db.delete(schema.households).where(eq(schema.households.id, id));
+      }
+    } finally {
+      // A failing cleanup must not leave the connection open: the run would
+      // never exit and CI would hang until its timeout.
+      await sql.end();
     }
-    await sql.end();
   });
 
   async function contribute(seed: Seed, goalId: string, amount: number, madeOn: string) {

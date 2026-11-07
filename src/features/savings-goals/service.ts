@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 import * as schema from "../../db/schema.ts";
@@ -90,7 +90,8 @@ export async function archiveGoal(
       and(
         eq(schema.savingsGoals.id, id),
         eq(schema.savingsGoals.householdId, householdId),
-        eq(schema.savingsGoals.archivedAt, sql`null`),
+        // `= null` is never true in SQL, so only isNull matches an active goal.
+        isNull(schema.savingsGoals.archivedAt),
       ),
     )
     .returning({ id: schema.savingsGoals.id });
@@ -144,7 +145,12 @@ export async function listGoalsWithProgress(
     })
     .from(schema.savingsGoals)
     .where(eq(schema.savingsGoals.householdId, householdId))
-    .orderBy(asc(schema.savingsGoals.archivedAt), asc(schema.savingsGoals.createdAt));
+    // Active goals first: an archived one has a value, and ASC would put the
+    // nulls (the active goals) last without nulls first.
+    .orderBy(
+      sql`${schema.savingsGoals.archivedAt} asc nulls first`,
+      asc(schema.savingsGoals.createdAt),
+    );
 
   const contributed = await db
     .select({
