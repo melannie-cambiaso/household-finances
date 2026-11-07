@@ -9,6 +9,7 @@ import {
   perFridayPlanned,
   plannedTotals,
   progressOf,
+  showsHeadroomSplit,
 } from "./rules.ts";
 
 const ITEM = "11111111-1111-4111-8111-111111111111";
@@ -290,5 +291,15 @@ describe("plannedTotals", () => {
       spending: 0,
       income: 0,
     });
+  });
+});
+
+describe("showsHeadroomSplit", () => {
+  it("shows the split only when both sides have money", () => {
+    assert.equal(showsHeadroomSplit({ available: 60_000, over: 50_000 }), true);
+    // The net total above already says these two on its own.
+    assert.equal(showsHeadroomSplit({ available: 60_000, over: 0 }), false);
+    assert.equal(showsHeadroomSplit({ available: 0, over: 50_000 }), false);
+    assert.equal(showsHeadroomSplit({ available: 0, over: 0 }), false);
   });
 });

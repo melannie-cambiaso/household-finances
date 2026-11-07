@@ -1,5 +1,6 @@
 import {
   barWidth,
+  showsHeadroomSplit,
   type Headroom,
   type Progress,
   type ProgressReport,
@@ -52,7 +53,9 @@ export function Figures({
 
 export function HeadroomFigures({ headroom }: { headroom: Headroom }) {
   // The pair adds up to the money left above: the slack on the lines that
-  // stayed under the plan, minus what the others went over.
+  // stayed under the plan, minus what the others went over. It only shows when
+  // both sides exist; otherwise the figure above already says the same.
+  if (!showsHeadroomSplit(headroom)) return null;
   return (
     <p className="text-sm text-muted">
       Available <span className="font-numeric">{formatClp(headroom.available)}</span> · over by <span className="font-numeric">{formatClp(headroom.over)}</span>

@@ -184,6 +184,14 @@ function headroomOf(rows: Progress[]): Headroom {
   return { available, over };
 }
 
+/**
+ * Whether the split is worth showing. With one side at zero the net total above
+ * already says the same number, so the line would only repeat it.
+ */
+export function showsHeadroomSplit(headroom: Headroom): boolean {
+  return headroom.available > 0 && headroom.over > 0;
+}
+
 const byName = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name);
 
